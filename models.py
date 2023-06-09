@@ -45,7 +45,7 @@ class RequestException(db.Model):
 # External Request in Transit class
 class ExternalRequestInTransit(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
-    request_id = db.Column(db.BigInteger,nullable=False, index=True)
+    request_id = db.Column(db.BigInteger, nullable=False, index=True)
     external_id = db.Column(db.ForeignKey(Institution.fulfillment_code), nullable=False)
     requestor = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(510), nullable=False)
