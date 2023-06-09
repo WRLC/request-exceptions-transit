@@ -73,7 +73,7 @@ class TransitStart(db.Model):
 # Object Methods #
 ##################
 
-# Add an institution to the database from form data
+# Add an institution to the database from form
 def add_institution(form):
     institution = Institution(
         code=form.code.data, name=form.name.data, partner_code=form.partner_code.data, key=form.key.data,
