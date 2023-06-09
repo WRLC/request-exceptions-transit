@@ -7,11 +7,11 @@ from utils import db
 ##################
 
 # Institution class
-class Institution(db.model):
+class Institution(db.Model):
     code = sa.Column(sa.String(255), primary_key=True)
     name = sa.Column(sa.String(255), nullable=False)
-    fulfillment_code = sa.Column(sa.String(255), nullable=False)
-    partner_code = sa.Column(sa.String(255), nullable=False)
+    fulfillment_code = sa.Column(sa.String(255), nullable=False, unique=True)
+    partner_code = sa.Column(sa.String(255), nullable=False, unique=True)
     key = sa.Column(sa.String(255), nullable=True)
     exceptions = sa.Column(sa.String(255), nullable=True)
     ext_requests_in_transit = sa.Column(sa.String(255), nullable=True)
@@ -30,7 +30,7 @@ class Institution(db.model):
 
 
 # Exception class
-class RequestException(db.model):
+class RequestException(db.Model):
     exception_id = sa.Column(sa.BigInteger, primary_key=True)
     fulfillmentreqid = sa.Column(sa.String(255), nullable=True)
     requestorid = sa.Column(sa.String(255), nullable=True)
@@ -68,14 +68,14 @@ class RequestException(db.model):
 
 
 # External request in transit class
-class ExternalRequestInTransit(db.model):
+class ExternalRequestInTransit(db.Model):
     request_id = sa.Column(sa.BigInteger, primary_key=True)
     external_id = sa.Column(sa.ForeignKey(Institution.fulfillment_code), nullable=False)
     requestor_id = sa.Column(sa.String(255), nullable=False)
     title = sa.Column(sa.String(510), nullable=False)
     author = sa.Column(sa.String(255), nullable=True)
     barcode = sa.Column(sa.String(255), nullable=True)
-    item_id = sa.Column(sa.String(255), nullable=True)
+    item_id = sa.Column(sa.String(255), nullable=True, index=True)
     isbn = sa.Column(sa.String(255), nullable=True)
     issn = sa.Column(sa.String(255), nullable=True)
     instcode = sa.Column(sa.ForeignKey(Institution.code))
@@ -93,7 +93,7 @@ class ExternalRequestInTransit(db.model):
 
 
 # In transit data class
-class InTransitData(db.model):
+class InTransitData(db.Model):
     event_id = sa.Column(sa.BigInteger, primary_key=True)
     item_id = sa.Column(sa.ForeignKey(ExternalRequestInTransit.item_id))
     transit_date = sa.Column(sa.DateTime, nullable=False)

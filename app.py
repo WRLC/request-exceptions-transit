@@ -8,6 +8,7 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
+import models
 
 app = Flask(__name__)
 
