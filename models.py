@@ -67,3 +67,18 @@ class TransitStart(db.Model):
 
     def __repr__(self):
         return '<InTransitData %r>' % self.event_id
+
+
+##################
+# Object Methods #
+##################
+
+# Add an institution to the database from form data
+def add_institution(form):
+    institution = Institution(
+        code=form.code.data, name=form.name.data, partner_code=form.partner_code.data, key=form.key.data,
+        exceptions=form.exceptions.data, ext_requests_in_transit=form.ext_requests_in_transit.data,
+        in_transit_data=form.in_transit_data.data
+    )
+    db.session.add(institution)
+    db.session.commit()
