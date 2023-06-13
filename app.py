@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
 from models import InstitutionForm, add_institution_form_submit, Institution
 import logging
@@ -81,14 +81,14 @@ def hello_world():  # put application's code here
     return render_template('index.html', content=content)
 
 
-@app.route('/institution/add', methods=['GET', 'POST'])
+@app.route('/add', methods=['GET', 'POST'])
 def add_institution():
     form = InstitutionForm()
 
     if form.validate_on_submit():
         add_institution_form_submit(form)
         flash('Institution added successfully', 'success')
-        return redirect(url_for('hello_world'))
+        return redirect(url_for('view_institution', code=form.code.data))
 
     return render_template('add_institution.html', form=form)
 
@@ -106,8 +106,9 @@ def edit_institution(code):
 
     if form.validate_on_submit():
         form.populate_obj(institution)
+        db.session.commit()
         flash('Institution updated successfully', 'success')
-        return redirect(url_for('hello_world'))
+        return redirect(url_for('view_institution', code=form.code.data))
 
     return render_template('edit_institution.html', form=form)
 

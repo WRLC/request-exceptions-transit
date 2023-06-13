@@ -42,5 +42,6 @@
                 <td>{{ institution.in_transit_data }}</td>
             </tr>
         </table>
+        <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
     </details>
 {% endblock %}
