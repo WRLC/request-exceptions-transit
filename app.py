@@ -1,5 +1,6 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
+from models import InstitutionForm, add_institution_form_submit
 import logging
 import os
 from utils import db
@@ -8,8 +9,6 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
-import models
-from forms import InstitutionForm
 
 app = Flask(__name__)
 
@@ -78,7 +77,8 @@ audit_log.addHandler(file_handler)  # add the file handler to the audit log
 
 @app.route('/')
 def hello_world():  # put application's code here
-    return 'Hello World!'
+    content = 'Hello World!'
+    return render_template('index.html', content=content)
 
 
 @app.route('/institution/add', methods=['GET', 'POST'])
@@ -86,7 +86,8 @@ def add_institution():
     form = InstitutionForm()
 
     if form.validate_on_submit():
-        models.add_institution(form)
+        message = add_institution_form_submit(form)
+        flash(message, 'success')
         return redirect(url_for('hello_world'))
 
     return render_template('add_institution.html', form=form)

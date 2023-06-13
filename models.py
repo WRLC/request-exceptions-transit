@@ -1,4 +1,7 @@
 from utils import db
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import DataRequired
 
 
 ##################
@@ -18,6 +21,18 @@ class Institution(db.Model):
 
     def __repr__(self):
         return '<Institution %r>' % self.code
+
+
+# Institution form class
+class InstitutionForm(FlaskForm):
+    code = StringField('Code', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    fulfillment_code = StringField('Fulfillment Code', validators=[DataRequired()])
+    partner_code = StringField('Partner Code', validators=[DataRequired()])
+    key = StringField('API Key')
+    exceptions = StringField('Exceptions Path')
+    ext_requests_in_transit = StringField('External Requests in Transit Path')
+    in_transit_data = StringField('In Transit Data Path')
 
 
 # Request Exception class
@@ -73,12 +88,14 @@ class TransitStart(db.Model):
 # Object Methods #
 ##################
 
-# Add an institution to the database from form
-def add_institution(form):
+def add_institution_form_submit(form):
     institution = Institution(
-        code=form.code.data, name=form.name.data, partner_code=form.partner_code.data, key=form.key.data,
-        exceptions=form.exceptions.data, ext_requests_in_transit=form.ext_requests_in_transit.data,
-        in_transit_data=form.in_transit_data.data
+        code=form.code.data, name=form.name.data, fulfillment_code=form.fulfillment_code.data,
+        partner_code=form.partner_code.data, key=form.key.data, exceptions=form.exceptions.data,
+        ext_requests_in_transit=form.ext_requests_in_transit.data, in_transit_data=form.in_transit_data.data
     )
     db.session.add(institution)
     db.session.commit()
+
+    message = 'Institution added successfully'
+    return message
