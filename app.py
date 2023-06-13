@@ -1,6 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 from settings import database, shared_secret, log_file
-from models import InstitutionForm, add_institution_form_submit
+from models import InstitutionForm, add_institution_form_submit, Institution
 import logging
 import os
 from utils import db
@@ -86,11 +86,30 @@ def add_institution():
     form = InstitutionForm()
 
     if form.validate_on_submit():
-        message = add_institution_form_submit(form)
-        flash(message, 'success')
+        add_institution_form_submit(form)
+        flash('Institution added successfully', 'success')
         return redirect(url_for('hello_world'))
 
     return render_template('add_institution.html', form=form)
+
+
+@app.route('/<code>')
+def view_institution(code):
+    institution = Institution.query.get_or_404(code)
+    return render_template('institution.html', institution=institution)
+
+
+@app.route('/<code>/edit', methods=['GET', 'POST'])
+def edit_institution(code):
+    institution = Institution.query.get_or_404(code)
+    form = InstitutionForm(obj=institution)
+
+    if form.validate_on_submit():
+        form.populate_obj(institution)
+        flash('Institution updated successfully', 'success')
+        return redirect(url_for('hello_world'))
+
+    return render_template('edit_institution.html', form=form)
 
 
 if __name__ == '__main__':

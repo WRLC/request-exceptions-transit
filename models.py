@@ -96,6 +96,3 @@ def add_institution_form_submit(form):
     )
     db.session.add(institution)
     db.session.commit()
-
-    message = 'Institution added successfully'
-    return message

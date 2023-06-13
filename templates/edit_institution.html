@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>
+        {% block page_title %}
+            Institutions - Add an institution
+        {% endblock %}
+    </h2>
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.code.label }} {{ form.code }}
+        </div>
+        <div class="mb-3">
+            {{ form.name.label }} {{ form.name }}
+        </div>
+        <div class="mb-3">
+            {{ form.fulfillment_code.label }} {{ form.fulfillment_code }}
+        </div>
+        <div class="mb-3">
+            {{ form.partner_code.label }} {{ form.partner_code }}
+        </div>
+        <div class="mb-3">
+            {{ form.key.label }} {{ form.key }}
+        </div>
+        <div class="mb-3">
+            {{ form.exceptions.label }} {{ form.exceptions }}
+        </div>
+        <div class="mb-3">
+            {{ form.ext_requests_in_transit.label }} {{ form.ext_requests_in_transit }}
+        </div>
+        <div class="mb-3">
+            {{ form.in_transit_data.label }} {{ form.in_transit_data }}
+        </div>
+        <div class="actions">
+            <input type="submit" value="Update Institution"  class="btn btn-primary" />
+        </div>
+    </form>
+
+{% endblock %}

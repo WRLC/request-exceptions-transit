@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>
+        {% block page_title %}
+            {{ institution.name }}
+        {% endblock %}
+    </h2>
+    <details>
+        <summary>Institution Details</summary>
+        <table class="table table-striped">
+            <tr>
+                <th>Code</th>
+                <td>{{ institution.code }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ institution.name }}</td>
+            </tr>
+            <tr>
+                <th>Fulfillment Code</th>
+                <td>{{ institution.fulfillment_code }}</td>
+            </tr>
+            <tr>
+                <th>Partner Code</th>
+                <td>{{ institution.partner_code }}</td>
+            </tr>
+            <tr>
+                <th>API Key</th>
+                <td>{{ institution.key }}</td>
+            </tr>
+            <tr>
+                <th>Exceptions Path</th>
+                <td>{{ institution.exceptions }}</td>
+            </tr>
+            <tr>
+                <th>External Requests in Transit Path</th>
+                <td>{{ institution.ext_requests_in_transit }}</td>
+            </tr>
+            <tr>
+                <th>In Transit Data Path</th>
+                <td>{{ institution.in_transit_data }}</td>
+            </tr>
+        </table>
+    </details>
+{% endblock %}
