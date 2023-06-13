@@ -9,28 +9,36 @@
     <form method="post">
         {{ form.csrf_token }}
         <div class="mb-3">
-            {{ form.code.label }} {{ form.code }}
+            {{ form.code.label(class="form-label") }}
+            {{ form.code(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.name.label }} {{ form.name }}
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.fulfillment_code.label }} {{ form.fulfillment_code }}
+            {{ form.fulfillment_code.label(class="form-label") }}
+            {{ form.fulfillment_code(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.partner_code.label }} {{ form.partner_code }}
+            {{ form.partner_code.label(class="form-label") }}
+            {{ form.partner_code(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.key.label }} {{ form.key }}
+            {{ form.key.label(class="form-label") }}
+            {{ form.key(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.exceptions.label }} {{ form.exceptions }}
+            {{ form.exceptions.label(class="form-label") }}
+            {{ form.exceptions(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.ext_requests_in_transit.label }} {{ form.ext_requests_in_transit }}
+            {{ form.ext_requests_in_transit.label(class="form-label") }}
+            {{ form.ext_requests_in_transit(class="form-control") }}
         </div>
         <div class="mb-3">
-            {{ form.in_transit_data.label }} {{ form.in_transit_data }}
+            {{ form.in_transit_data.label(class="form-label") }}
+            {{ form.in_transit_data(class="form-control") }}
         </div>
         <div class="actions">
             <input type="submit" value="Add Institution"  class="btn btn-primary" />

@@ -78,8 +78,8 @@ audit_log.addHandler(file_handler)  # add the file handler to the audit log
 # Home page
 @app.route('/')
 def hello_world():  # put application's code here
-    content = 'Hello World!'
-    return render_template('index.html', content=content)
+    institutions = db.session.execute(db.select(Institution).order_by(Institution.name)).scalars()
+    return render_template('index.html', institutions=institutions)
 
 
 # Add institution
