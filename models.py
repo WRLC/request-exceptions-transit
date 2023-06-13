@@ -88,11 +88,13 @@ class TransitStart(db.Model):
 # Object Methods #
 ##################
 
+# Add institution form submit
 def add_institution_form_submit(form):
+    # Build institution object from form data
     institution = Institution(
         code=form.code.data, name=form.name.data, fulfillment_code=form.fulfillment_code.data,
         partner_code=form.partner_code.data, key=form.key.data, exceptions=form.exceptions.data,
         ext_requests_in_transit=form.ext_requests_in_transit.data, in_transit_data=form.in_transit_data.data
     )
-    db.session.add(institution)
-    db.session.commit()
+    db.session.add(institution)  # Add institution to database
+    db.session.commit()  # Commit changes to database

@@ -75,42 +75,46 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s\t%(message)s'))  # set 
 audit_log.addHandler(file_handler)  # add the file handler to the audit log
 
 
+# Home page
 @app.route('/')
 def hello_world():  # put application's code here
     content = 'Hello World!'
     return render_template('index.html', content=content)
 
 
+# Add institution
 @app.route('/add', methods=['GET', 'POST'])
 def add_institution():
-    form = InstitutionForm()
+    form = InstitutionForm()  # Load form
 
-    if form.validate_on_submit():
-        add_institution_form_submit(form)
-        flash('Institution added successfully', 'success')
-        return redirect(url_for('view_institution', code=form.code.data))
+    if form.validate_on_submit():  # If form is submitted and valid
+        add_institution_form_submit(form)  # Add institution to database
+        flash('Institution added successfully', 'success')  # Flash success message
+        return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
 
-    return render_template('add_institution.html', form=form)
+    return render_template('add_institution.html', form=form)  # Render add institution page
 
 
+# View institution
 @app.route('/<code>')
 def view_institution(code):
-    institution = Institution.query.get_or_404(code)
-    return render_template('institution.html', institution=institution)
+    institution = Institution.query.get_or_404(code)  # Get institution from database
+    return render_template('institution.html', institution=institution)  # Render institution page
 
 
+# Edit institution
 @app.route('/<code>/edit', methods=['GET', 'POST'])
 def edit_institution(code):
-    institution = Institution.query.get_or_404(code)
-    form = InstitutionForm(obj=institution)
+    institution = Institution.query.get_or_404(code)  # Get institution from database
+    form = InstitutionForm(obj=institution)  # Load form with institution data
 
-    if form.validate_on_submit():
-        form.populate_obj(institution)
-        db.session.commit()
-        flash('Institution updated successfully', 'success')
-        return redirect(url_for('view_institution', code=form.code.data))
+    if form.validate_on_submit():  # If form is submitted and valid
+        form.populate_obj(institution)  # Populate institution with form data
+        db.session.commit()  # Commit changes to database
+        flash('Institution updated successfully', 'success')  # Flash success message
+        return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
 
-    return render_template('edit_institution.html', form=form)
+    return render_template('edit_institution.html', form=form)  # Render edit institution page
 
 
 if __name__ == '__main__':
