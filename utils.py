@@ -1,4 +1,3 @@
 from flask_sqlalchemy import SQLAlchemy
 
-# Create a database object
-db = SQLAlchemy()
+db = SQLAlchemy()  # Create a database object

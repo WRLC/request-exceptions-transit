@@ -38,20 +38,20 @@ class InstitutionForm(FlaskForm):
 # Request Exception class
 class RequestException(db.Model):
     exception_id = db.Column(db.BigInteger, primary_key=True)
-    fulfillmentreqid = db.Column(db.String(255), nullable=True)
-    requestorid = db.Column(db.String(255), nullable=True)
+    instcode = db.Column(db.ForeignKey(Institution.code))
     borreqstat = db.Column(db.String(255), nullable=True)
     internalid = db.Column(db.String(255), nullable=True)
     borcreate = db.Column(db.Date, nullable=True)
     title = db.Column(db.String(510), nullable=True)
     author = db.Column(db.String(255), nullable=True)
     networknum = db.Column(db.String(255), nullable=True)
+    isbn = db.Column(db.String(255), nullable=True)
+    issn = db.Column(db.String(255), nullable=True)
+    requestor = db.Column(db.String(255), nullable=True)
     partnerstat = db.Column(db.String(255), nullable=True)
     reqsend = db.Column(db.DateTime, nullable=True)
     days = db.Column(db.Integer, nullable=True)
-    requestor = db.Column(db.String(255), nullable=True)
-    partnercode = db.Column(db.ForeignKey(Institution.partner_code))
-    instcode = db.Column(db.ForeignKey(Institution.code))
+    partnercode = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return '<RequestException %r>' % self.exception_id
@@ -59,8 +59,7 @@ class RequestException(db.Model):
 
 # External Request in Transit class
 class ExternalRequestInTransit(db.Model):
-    id = db.Column(db.BigInteger, primary_key=True)
-    request_id = db.Column(db.BigInteger, nullable=False, index=True)
+    request_id = db.Column(db.BigInteger, primary_key=True)
     external_id = db.Column(db.ForeignKey(Institution.fulfillment_code), nullable=False)
     requestor = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(510), nullable=False)
@@ -98,3 +97,9 @@ def add_institution_form_submit(form):
     )
     db.session.add(institution)  # Add institution to database
     db.session.commit()  # Commit changes to database
+
+
+# Get all institutions
+def get_all_institutions():
+    institutions = db.session.execute(db.select(Institution).order_by(Institution.name)).scalars()
+    return institutions

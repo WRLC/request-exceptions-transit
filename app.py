@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
-from models import InstitutionForm, add_institution_form_submit, Institution
+from models import InstitutionForm, add_institution_form_submit, Institution, get_all_institutions
 import logging
 import os
 from utils import db
@@ -40,7 +40,7 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=55)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=23)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
@@ -78,8 +78,8 @@ audit_log.addHandler(file_handler)  # add the file handler to the audit log
 # Home page
 @app.route('/')
 def hello_world():  # put application's code here
-    institutions = db.session.execute(db.select(Institution).order_by(Institution.name)).scalars()
-    return render_template('index.html', institutions=institutions)
+    institutions = get_all_institutions()  # Get all institutions from database
+    return render_template('index.html', institutions=institutions)  # Render home page
 
 
 # Add institution
