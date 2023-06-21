@@ -1,7 +1,9 @@
-from utils import db
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()  # Create a database object
 
 
 ##################
@@ -83,6 +85,26 @@ class TransitStart(db.Model):
 
     def __repr__(self):
         return '<InTransitData %r>' % self.event_id
+
+
+# Institution Update class
+class Inst_update(db.Model):
+    id = db.Column(db.BigInteger, primary_key=True)
+    instcode = db.Column(db.ForeignKey(Institution.code))
+    last_update = db.Column(db.DateTime, nullable=False)
+    
+    def __repr__(self):
+        return '<Inst_update %r>' % self.id
+    
+
+# User class
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), nullable=False)
+    displayname = db.Column(db.String(255), nullable=True)
+    instcode = db.Column(db.ForeignKey(Institution.code))
+    admin = db.Column(db.Boolean, nullable=False)
+    last_login = db.Column(db.DateTime, nullable=True)
 
 
 ##################

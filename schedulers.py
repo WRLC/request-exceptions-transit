@@ -1,6 +1,5 @@
 import requests
-from models import get_all_institutions, RequestException, ExternalRequestInTransit, TransitStart
-from utils import db
+from models import db, get_all_institutions, RequestException, ExternalRequestInTransit, TransitStart
 from bs4 import BeautifulSoup
 
 
