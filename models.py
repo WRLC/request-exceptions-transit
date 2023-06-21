@@ -60,13 +60,15 @@ class RequestException(db.Model):
 # External Request in Transit class
 class ExternalRequestInTransit(db.Model):
     request_id = db.Column(db.BigInteger, primary_key=True)
-    external_id = db.Column(db.ForeignKey(Institution.fulfillment_code), nullable=False)
-    requestor = db.Column(db.String(255), nullable=False)
-    title = db.Column(db.String(510), nullable=False)
+    instcode = db.Column(db.ForeignKey(Institution.code))
+    external_id = db.Column(db.String(255), nullable=False)
+    requestor = db.Column(db.String(255), nullable=True)
+    title = db.Column(db.String(510), nullable=True)
     author = db.Column(db.String(255), nullable=True)
+    barcode = db.Column(db.String(255), nullable=True)
+    physical_item_id = db.Column(db.String(255), nullable=True)
     isbn = db.Column(db.String(255), nullable=True)
     issn = db.Column(db.String(255), nullable=True)
-    instcode = db.Column(db.ForeignKey(Institution.code))
 
     def __repr__(self):
         return '<ExternalRequestInTransit %r>' % self.request_id
@@ -75,9 +77,9 @@ class ExternalRequestInTransit(db.Model):
 # Transit Start class
 class TransitStart(db.Model):
     event_id = db.Column(db.BigInteger, primary_key=True)
+    instcode = db.Column(db.ForeignKey(Institution.code))
     request_id = db.Column(db.ForeignKey(ExternalRequestInTransit.request_id))
     transit_date = db.Column(db.DateTime, nullable=False)
-    instcode = db.Column(db.ForeignKey(Institution.code))
 
     def __repr__(self):
         return '<InTransitData %r>' % self.event_id
