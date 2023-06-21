@@ -88,13 +88,13 @@ class TransitStart(db.Model):
 
 
 # Institution Update class
-class Inst_update(db.Model):
+class InstUpdate(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
     instcode = db.Column(db.ForeignKey(Institution.code))
     last_update = db.Column(db.DateTime, nullable=False)
     
     def __repr__(self):
-        return '<Inst_update %r>' % self.id
+        return '<InstUpdate %r>' % self.id
     
 
 # User class
