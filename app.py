@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
-from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions
+from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, \
+    RequestException, ExternalRequestInTransit, TransitStart
 import logging
 import os
 import flask_excel as excel
@@ -8,6 +9,7 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
+import sys
 
 app = Flask(__name__)
 
@@ -81,24 +83,25 @@ def hello_world():  # put application's code here
     return render_template('index.html', institutions=institutions)  # Render home page
 
 
-# Add institution
-@app.route('/add', methods=['GET', 'POST'])
-def add_institution():
-    form = InstitutionForm()  # Load form
-
-    if form.validate_on_submit():  # If form is submitted and valid
-        add_institution_form_submit(form)  # Add institution to database
-        flash('Institution added successfully', 'success')  # Flash success message
-        return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
-
-    return render_template('add_institution.html', form=form)  # Render add institution page
-
-
 # View institution
 @app.route('/<code>')
 def view_institution(code):
     institution = Institution.query.get_or_404(code)  # Get institution from database
-    return render_template('institution.html', institution=institution)  # Render institution page
+    exceptions = db.session.execute(
+        db.select(
+            RequestException, TransitStart.transit_date
+        ).outerjoin(
+            ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title)
+                                      & (RequestException.requestor == ExternalRequestInTransit.requestor)
+        ).outerjoin(
+            TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
+        ).filter(
+            RequestException.instcode == code
+        )
+    ).scalars()
+
+    # Render institution page
+    return render_template('institution.html', institution=institution, exceptions=exceptions)
 
 
 # Edit institution
@@ -114,6 +117,19 @@ def edit_institution(code):
         return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
 
     return render_template('edit_institution.html', form=form)  # Render edit institution page
+
+
+# Add institution
+@app.route('/add', methods=['GET', 'POST'])
+def add_institution():
+    form = InstitutionForm()  # Load form
+
+    if form.validate_on_submit():  # If form is submitted and valid
+        add_institution_form_submit(form)  # Add institution to database
+        flash('Institution added successfully', 'success')  # Flash success message
+        return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
+
+    return render_template('add_institution.html', form=form)  # Render add institution page
 
 
 if __name__ == '__main__':

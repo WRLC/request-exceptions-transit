@@ -44,4 +44,11 @@
         </table>
         <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
     </details>
+    <table>
+        {% for exception in exceptions %}
+            <tr>
+                <td>{{ exception.title }} ({{ exception.transit_date }})</td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
