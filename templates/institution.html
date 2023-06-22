@@ -96,11 +96,14 @@
                             {% endif %}
                             <td>{{ request.partnername }}</td>
                             <td>{{ request.partnercode }}</td>
-                            {% if request.eventstart %}
+                            {%  if request.request_id %}
                                 <td>Y</td>
-                                <td>{{ request.eventstart }}</td>
                             {% else %}
                                 <td>N</td>
+                            {% endif %}
+                            {% if request.eventstart %}
+                                <td>{{ request.eventstart }}</td>
+                            {% else %}
                                 <td></td>
                             {% endif %}
                         </tr>

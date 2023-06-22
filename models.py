@@ -48,13 +48,11 @@ class Institution(db.Model):
                 RequestException.title, RequestException.author, RequestException.networknum,
                 RequestException.partnerstat, RequestException.reqsend, RequestException.days,
                 RequestException.requestor, RequestException.partnername, RequestException.partnercode,
-                TransitStart.event_id, TransitStart.transit_date
+                ExternalRequestInTransit.request_id, TransitStart.transit_date
             ).join(
                 Institution, RequestException.instcode == Institution.code
             ).outerjoin(
-                ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title) &
-                                          (RequestException.requestor == ExternalRequestInTransit.requestor) &
-                                          (Institution.fulfillment_code == ExternalRequestInTransit.external_id)
+                ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title)
             ).outerjoin(
                 TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
             ).filter(
