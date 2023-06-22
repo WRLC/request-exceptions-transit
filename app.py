@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, \
-    RequestException, ExternalRequestInTransit, TransitStart
+    RequestException, TransitStart, ExternalRequestInTransit
 import logging
 import os
 import flask_excel as excel
@@ -41,7 +41,7 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=28)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=47)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
@@ -87,21 +87,15 @@ def hello_world():  # put application's code here
 @app.route('/<code>')
 def view_institution(code):
     institution = Institution.query.get_or_404(code)  # Get institution from database
-    exceptions = db.session.execute(
-        db.select(
-            RequestException, TransitStart.transit_date
-        ).outerjoin(
-            ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title)
-                                      & (RequestException.requestor == ExternalRequestInTransit.requestor)
-        ).outerjoin(
-            TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
-        ).filter(
-            RequestException.instcode == code
-        )
-    ).scalars()
+    statuses = Institution.get_statuses(institution)  # Get statuses from Institution class
+    request_exceptions = []  # Create empty list for request exceptions
+
+    for status in statuses:  # Loop through statuses
+        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions by status
+        request_exceptions.append(exceptions)  # Add exceptions to list
 
     # Render institution page
-    return render_template('institution.html', institution=institution, exceptions=exceptions)
+    return render_template('institution.html', institution=institution, exceptions=request_exceptions)
 
 
 # Edit institution

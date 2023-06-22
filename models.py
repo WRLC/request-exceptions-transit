@@ -21,8 +21,51 @@ class Institution(db.Model):
     ext_requests_in_transit = db.Column(db.String(255), nullable=True)
     in_transit_data = db.Column(db.String(255), nullable=True)
 
+    # Constructor
     def __repr__(self):
         return '<Institution %r>' % self.code
+
+    # Get all current RequestExceptions statuses for the institution
+    def get_statuses(self):
+        statuses = db.session.execute(
+            db.select(
+                RequestException.borreqstat
+            ).filter(
+                RequestException.instcode == self.code
+            ).group_by(
+                RequestException.borreqstat
+            ).order_by(
+                RequestException.borreqstat
+            )
+        ).mappings().all()
+        return statuses
+
+    # Get all current RequestExceptions for the institution by status
+    def get_exceptions_by_status(self, status):
+        requests = db.session.execute(
+            db.select(
+                RequestException.borreqstat, RequestException.internalid, RequestException.borcreate,
+                RequestException.title, RequestException.author, RequestException.networknum,
+                RequestException.partnerstat, RequestException.reqsend, RequestException.days,
+                RequestException.requestor, RequestException.partnername, RequestException.partnercode,
+                TransitStart.event_id, TransitStart.transit_date
+            ).join(
+                Institution, RequestException.instcode == Institution.code
+            ).outerjoin(
+                ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title) &
+                                          (RequestException.requestor == ExternalRequestInTransit.requestor) &
+                                          (Institution.fulfillment_code == ExternalRequestInTransit.external_id)
+            ).outerjoin(
+                TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
+            ).filter(
+                RequestException.instcode == self.code,
+                RequestException.borreqstat == status
+            ).order_by(
+                RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
+                RequestException.reqsend.desc()
+            )
+        ).mappings().all()
+        return requests
 
 
 # Institution form class
@@ -53,8 +96,10 @@ class RequestException(db.Model):
     partnerstat = db.Column(db.String(255), nullable=True)
     reqsend = db.Column(db.DateTime, nullable=True)
     days = db.Column(db.Integer, nullable=True)
+    partnername = db.Column(db.String(255), nullable=True)
     partnercode = db.Column(db.String(255), nullable=True)
 
+    # Constructor
     def __repr__(self):
         return '<RequestException %r>' % self.exception_id
 
@@ -72,6 +117,7 @@ class ExternalRequestInTransit(db.Model):
     isbn = db.Column(db.String(255), nullable=True)
     issn = db.Column(db.String(255), nullable=True)
 
+    # Constructor
     def __repr__(self):
         return '<ExternalRequestInTransit %r>' % self.request_id
 
@@ -83,6 +129,7 @@ class TransitStart(db.Model):
     request_id = db.Column(db.ForeignKey(ExternalRequestInTransit.request_id))
     transit_date = db.Column(db.DateTime, nullable=False)
 
+    # Constructor
     def __repr__(self):
         return '<InTransitData %r>' % self.event_id
 
@@ -93,6 +140,7 @@ class InstUpdate(db.Model):
     instcode = db.Column(db.ForeignKey(Institution.code))
     last_update = db.Column(db.DateTime, nullable=False)
     
+    # Constructor
     def __repr__(self):
         return '<InstUpdate %r>' % self.id
     
@@ -106,15 +154,18 @@ class User(db.Model):
     admin = db.Column(db.Boolean, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
+    # Constructor
+    def __repr__(self):
+        return '<User %r>' % self.username
 
-##################
-# Object Methods #
-##################
+
+####################
+# Helper Functions #
+####################
 
 # Add institution form submit
 def add_institution_form_submit(form):
-    # Build institution object from form data
-    institution = Institution(
+    institution = Institution(  # Build institution object from form data
         code=form.code.data, name=form.name.data, fulfillment_code=form.fulfillment_code.data,
         partner_code=form.partner_code.data, key=form.key.data, exceptions=form.exceptions.data,
         ext_requests_in_transit=form.ext_requests_in_transit.data, in_transit_data=form.in_transit_data.data

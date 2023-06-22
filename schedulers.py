@@ -38,6 +38,7 @@ def update_reports():
                 partnerstat=set_value(row, mapped_exc, 'Partner Active Status'),
                 reqsend=set_value(row, mapped_exc, 'Request Sending Date'),
                 days=set_value(row, mapped_exc, ' TIMESTAMPDIFF( SQL_TSI_DAY , Request Sending Date,  CURRENT_DATE )'),
+                partnername=set_value(row, mapped_exc, 'Partner Name'),
                 partnercode=set_value(row, mapped_exc, 'Partner Code'),
             )
             db.session.add(exception)  # Add the exception to the database

@@ -6,7 +6,7 @@
             {{ institution.name }}
         {% endblock %}
     </h2>
-    <details>
+    <details class="mb-3">
         <summary>Institution Details</summary>
         <table class="table table-bordered table-hover table-sm">
             <tr>
@@ -44,11 +44,80 @@
         </table>
         <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
     </details>
-    <table>
-        {% for exception in exceptions %}
-            <tr>
-                <td>{{ exception.title }} ({{ exception.transit_date }})</td>
-            </tr>
-        {% endfor %}
-    </table>
+    {% for reqs in exceptions %}
+        <details class="collapsible-report">
+            <summary>
+                {% set slots = [] %}
+                {% for req in reqs if req.internalid not in slots %}
+                    {{ slots.append(req.internalid) or "" }}
+                {% endfor %}
+                {{ reqs[0].borreqstat }} ({{ slots|length }})
+            </summary>
+            <table class="table table-bordered table-hover table-sm report" id="{{ reqs[0].borreqstat|replace(' ', '') }}">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th>Borrowing Request Status</th>
+                        <th>Internal ID</th>
+                        <th>Borrowing Request Date</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Network Number</th>
+                        <th>Requestor</th>
+                        <th>Partner Active Status</th>
+                        <th>Request Sending Date</th>
+                        <th>Days Since Request</th>
+                        <th>Partner Name</th>
+                        <th>Partner Code</th>
+                        <th>Item In Transit?</th>
+                        <th>In Transit Start</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in reqs %}
+                        <tr>
+                            <td>{{ request.borreqstat }}</td>
+                            <td>{{ request.internalid }}</td>
+                            <td>{{ request.borcreate }}</td>
+                            <td>{{ request.title }}</td>
+                            <td>{{ request.author }}</td>
+                            {% if request.networknum %}
+                                <td>{{ request.networknum }}</td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                            <td>{{ request.requestor }}</td>
+                            <td>{{ request.partnerstat }}</td>
+                            {% if request.reqsend %}
+                                <td>{{ request.reqsend }}</td>
+                                <td>{{ request.days }}</td>
+                            {% else %}
+                                <td></td>
+                                <td></td>
+                            {% endif %}
+                            <td>{{ request.partnername }}</td>
+                            <td>{{ request.partnercode }}</td>
+                            {% if request.eventstart %}
+                                <td>Y</td>
+                                <td>{{ request.eventstart }}</td>
+                            {% else %}
+                                <td>N</td>
+                                <td></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+    {% endfor %}
+        <script>
+        window.onload = function() {
+            const tables = document.getElementsByClassName("report");
+            if (tables.length > 0) {
+                for (let table of tables) {
+                    mergeCells(table.id);
+                }
+            }
+        };
+    </script>
+
 {% endblock %}
