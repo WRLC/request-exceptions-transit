@@ -8,7 +8,7 @@ import logging
 
 # scheduler log
 logdir = scheduler_log_dir
-log_file = logdir + 'scheduler.log'
+log_file = logdir + '/scheduler.log'
 scheduler_log = logging.getLogger('scheduler')  # create the scheduler log
 scheduler_log.setLevel(logging.INFO)  # set the scheduler log level
 file_handler = TimedRotatingFileHandler(log_file, when='midnight')  # create a file handler

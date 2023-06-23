@@ -131,7 +131,7 @@ class ExternalRequestInTransit(db.Model):
 class TransitStart(db.Model):
     event_id = db.Column(db.BigInteger, primary_key=True)
     instcode = db.Column(db.ForeignKey(Institution.code))
-    request_id = db.Column(db.ForeignKey(ExternalRequestInTransit.request_id))
+    request_id = db.Column(db.String(255), nullable=False)
     transit_date = db.Column(db.DateTime, nullable=False)
 
     # Constructor
