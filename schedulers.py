@@ -24,9 +24,9 @@ def update_reports():
     existing_ext = None  # Initialize variables
     existing_transit = None  # Initialize variables
     institutions = get_all_institutions()  # Get all institutions
-    updated = 0  # Set updated to 0
 
     for institution in institutions:  # loop through institutions
+        updated = 0  # Set updated to 0
         if institution.code is not None:  # Check if the institution has a code
 
             # Exceptions
@@ -65,7 +65,7 @@ def update_reports():
                             db.session.commit()  # Commit the exception to the database
                             new_exception_count += 1  # Increment new exception count
                     if new_exception_count > 0:  # Check if there were any new exceptions
-                        scheduler_log.info(  # Log the number of new exceptions added
+                        scheduler_log.debug(  # Log the number of new exceptions added
                             '{} exceptions added for {}'.format(new_exception_count, institution.code))
                     updated += 1  # Increment updated
 
@@ -147,13 +147,13 @@ def update_reports():
                                 db.session.commit()
                                 deleted_ext_count += 1  # Increment deleted count
                     if merged_ext_count > 0:
-                        scheduler_log.info(  # Log the number of merged external requests in transit
+                        scheduler_log.debug(  # Log the number of merged external requests in transit
                             '{} external requests in transit merged for {}'.format(merged_ext_count, institution.code))
                     if new_ext_count > 0:
-                        scheduler_log.info(  # Log the number of new external requests in transit
+                        scheduler_log.debug(  # Log the number of new external requests in transit
                             '{} external requests in transit added for {}'.format(new_ext_count, institution.code))
                     if deleted_ext_count > 0:
-                        scheduler_log.info(  # Log the number of deleted external requests in transit
+                        scheduler_log.debug(  # Log the number of deleted external requests in transit
                             '{} external requests in transit deleted for {}'.format(
                                 deleted_ext_count, institution.code))
                     updated += 1  # Increment updated
@@ -223,13 +223,13 @@ def update_reports():
                                 db.session.commit()
                                 deleted_transit_count += 1  # Increment deleted count
                     if merged_transit_count > 0:
-                        scheduler_log.info(  # Log the number of merged transit starts
+                        scheduler_log.debug(  # Log the number of merged transit starts
                             '{} transit start events merged for {}'.format(merged_transit_count, institution.code))
                     if new_transit_count > 0:
-                        scheduler_log.info(  # Log the number of new transit starts
+                        scheduler_log.debug(  # Log the number of new transit starts
                             '{} transit start events added for {}'.format(new_transit_count, institution.code))
                     if deleted_transit_count > 0:
-                        scheduler_log.info(  # Log the number of deleted transit starts
+                        scheduler_log.debug(  # Log the number of deleted transit starts
                             '{} transit start events deleted for {}'.format(
                                 deleted_transit_count, institution.code))
                     updated += 1  # Increment updated
@@ -245,8 +245,10 @@ def update_reports():
                         'Institution update for {} not added: {}'.format(institution.code, e))
                 else:
                     db.session.commit()
-                    scheduler_log.info(  # Log the institution update
+                    scheduler_log.debug(  # Log the institution update
                         '{} updated'.format(institution.code))
+
+    scheduler_log.info('Scheduler run completed')  # Log the completion of the scheduler run
 
 
 # Get the value of a column from a row
