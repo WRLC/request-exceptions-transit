@@ -236,7 +236,8 @@ def update_reports():
 
             # Institution Update
             if updated > 0:
-                inst_update = InstUpdate(institution.code, datetime.now())  # Create an InstUpdate object
+                inst_update = InstUpdate(
+                    instcode=institution.code, last_update=datetime.now())  # Create an InstUpdate object
                 try:
                     db.session.add(inst_update)  # add the institution update to the database
                 except Exception as e:
