@@ -1,7 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from settings import database, shared_secret, log_file
-from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, \
-    RequestException, TransitStart, ExternalRequestInTransit
+from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions
 import logging
 import os
 import flask_excel as excel
@@ -9,7 +8,6 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
-import sys
 
 app = Flask(__name__)
 
