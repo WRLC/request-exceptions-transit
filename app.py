@@ -3,7 +3,6 @@ from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login
 import logging
 import os
-import flask_excel as excel
 from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
@@ -29,7 +28,6 @@ app.secret_key = app.config['SESSION_KEY']  # set the session key
 app.config['LOG_FILE'] = log_file  # set the audit log file
 
 db.init_app(app)  # initialize SQLAlchemy
-excel.init_excel(app)  # initialize Flask-Excel
 
 # database
 with app.app_context():  # need to be in app context to create the database
