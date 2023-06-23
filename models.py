@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import aliased
 
 db = SQLAlchemy()  # Create a database object
 
@@ -42,6 +43,8 @@ class Institution(db.Model):
 
     # Get all current RequestExceptions for the institution by status
     def get_exceptions_by_status(self, status):
+        ib = aliased(Institution)
+        il = aliased(Institution)
         requests = db.session.execute(
             db.select(
                 RequestException.borreqstat, RequestException.internalid, RequestException.borcreate,
@@ -50,9 +53,13 @@ class Institution(db.Model):
                 RequestException.requestor, RequestException.partnername, RequestException.partnercode,
                 ExternalRequestInTransit.request_id, TransitStart.transit_date
             ).join(
-                Institution, RequestException.instcode == Institution.code
+                ib, RequestException.instcode == ib.code
             ).outerjoin(
-                ExternalRequestInTransit, (RequestException.title == ExternalRequestInTransit.title)
+                il, RequestException.partnercode == il.partner_code
+            ).outerjoin(
+                ExternalRequestInTransit, (ExternalRequestInTransit.title == RequestException.title) &
+                                          (ExternalRequestInTransit.external_id == ib.fulfillment_code) &
+                                          (ExternalRequestInTransit.instcode == il.code)
             ).outerjoin(
                 TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
             ).filter(
