@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, session
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions
 import logging
@@ -8,6 +8,7 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -39,7 +40,7 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=0)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=55)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
@@ -72,6 +73,18 @@ file_handler = TimedRotatingFileHandler(app.config['LOG_FILE'], when='midnight')
 file_handler.setLevel(logging.INFO)  # set the file handler level
 file_handler.setFormatter(logging.Formatter('%(asctime)s\t%(message)s'))  # set the file handler format
 audit_log.addHandler(file_handler)  # add the file handler to the audit log
+
+
+# decorator for pages that need auth
+def auth_required(f):
+    @wraps(f)  # preserve the original function's metadata
+    def decorated(*args, **kwargs):  # the wrapper function
+        if 'username' not in session:  # if the user is not logged in
+            return redirect(url_for('login'))  # redirect to the login page
+        else:
+            return f(*args, **kwargs)  # otherwise, call the original function
+
+    return decorated
 
 
 # Home page
