@@ -3,6 +3,8 @@ from wtforms import StringField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
+from settings import admins
+from datetime import datetime
 
 db = SQLAlchemy()  # Create a database object
 
@@ -71,6 +73,62 @@ class Institution(db.Model):
             )
         ).mappings().all()
         return requests
+
+    def get_all_requests(self):
+        ib = aliased(Institution)
+        il = aliased(Institution)
+        requests = db.session.execute(
+            db.select(
+                RequestException.borreqstat.label('Borrowing Request Status'),
+                RequestException.internalid.label('Internal ID'),
+                RequestException.borcreate.label('Borrowing Request Date'),
+                RequestException.title.label('Title'),
+                RequestException.author.label('Author'),
+                RequestException.networknum.label('Network Number'),
+                RequestException.partnerstat.label('Partner Active Status'),
+                RequestException.reqsend.label('Request Sending Date'),
+                RequestException.days.label('Days Since Request'),
+                RequestException.requestor.label('Requestor'),
+                RequestException.partnername.label('Partner Name'),
+                RequestException.partnercode.label('Partner Code'),
+                ExternalRequestInTransit.request_id.label('In Transit?'),
+                TransitStart.transit_date.label('In Transit Start')
+            ).join(
+                ib, RequestException.instcode == ib.code
+            ).outerjoin(
+                il, RequestException.partnercode == il.partner_code
+            ).outerjoin(
+                ExternalRequestInTransit, (ExternalRequestInTransit.title == RequestException.title) &
+                                          (ExternalRequestInTransit.external_id == ib.fulfillment_code) &
+                                          (ExternalRequestInTransit.instcode == il.code)
+            ).outerjoin(
+                TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
+            ).filter(
+                RequestException.instcode == self.code,
+            ).order_by(
+                RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
+                RequestException.reqsend.desc()
+            )
+        ).mappings().all()
+
+        requests_dict = [dict(row) for row in requests]
+
+        columns = ['Borrowing Request Status', 'Internal ID', 'Borrowing Request Date', 'Title', 'Author',
+                   'Network Number',
+                   'Requestor', 'Partner Active Status', 'Request Sending Date', 'Days Since Request', 'Partner Name',
+                   'Partner Code', 'In Transit?', 'In Transit Start']
+
+        parsed_requests = []  # List to hold parsed requests
+
+        for request in requests_dict:  # Parse requests
+            if request['In Transit?'] is None:  # If the request is not in transit
+                request['In Transit?'] = 'N'  # Set the value to 'N'
+            else:  # If the request is in transit
+                request['In Transit?'] = 'Y'  # Set the value to 'Y'
+            ordered_request = {k: request[k] for k in columns}  # Create a dictionary of the request
+            parsed_requests.append(ordered_request)  # Add the parsed request to the list
+
+        return parsed_requests  # Return the list of parsed requests
 
 
 # Institution form class
@@ -183,3 +241,71 @@ def add_institution_form_submit(form):
 def get_all_institutions():
     institutions = db.session.execute(db.select(Institution).order_by(Institution.name)).scalars()
     return institutions
+
+
+# Log the user in
+def user_login(session, user_data):
+
+    # Set the session variables
+    session['username'] = user_data['primary_id']  # Set the username
+    session['user_home'] = user_data['inst']  # Set the user's home institution
+    session['display_name'] = user_data['full_name']  # Set the user's display name
+    session['authorizations'] = user_data['authorizations']  # Set the user's authorizations
+
+    user = check_user(session['username'])  # Check if the user exists in the database
+
+    # If the user is in the database...
+    if user is not None:
+        set_user_admin(user, session)  # ..set the user's admin status
+        if 'exceptions' in session['authorizations']:
+            set_last_login(user)  # ..set the last login time for the user
+
+    # If the user isn't in the database...
+    else:
+        admincheck = admincheck_user(session)  # ...check if the user is an admin
+        add_user(session, admincheck)  # ...add the user to the database
+
+
+# Check if the user exists in the database
+def check_user(username):
+    user = db.session.execute(db.select(User).filter(User.username == username)).scalar_one_or_none()
+    return user
+
+
+# Set the last login time for the user
+def set_last_login(user):
+    user.last_login = datetime.now()  # Set the last login time to the current time
+    db.session.commit()  # Commit the changes
+
+
+# Set the user's admin status based on the database
+def set_user_admin(user, session):
+    if user.admin is True:  # Check if the user is an admin
+        if 'exceptions' not in session['authorizations']:
+            session['authorizations'].append('exceptions')  # If they are, add the admin authorization to the session
+        session['authorizations'].append('admin')  # If they are, add the admin authorization to the session
+
+
+# Check if the username is in the admin list
+def admincheck_user(session):
+    if session['username'] in admins:  # Check if the user is an admin
+        admincheck = True  # If they are, set admincheck to True
+    else:
+        admincheck = False  # If they are not, set admincheck to False
+
+    return admincheck
+
+
+# Add the user to the database
+def add_user(session, admincheck):
+
+    # Create the user object
+    user = User(
+        username=session['username'],
+        displayname=session['display_name'],
+        instcode=session['user_home'],
+        admin=admincheck,
+        last_login=datetime.now()
+    )
+    db.session.add(user)  # Add the user to the database
+    db.session.commit()  # Commit the changes

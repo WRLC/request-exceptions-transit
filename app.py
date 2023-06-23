@@ -1,6 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, flash, session
+from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
-from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions
+from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login
 import logging
 import os
 import flask_excel as excel
@@ -8,6 +8,9 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
+import jwt
+import pandas as pd
+import io
 from functools import wraps
 
 app = Flask(__name__)
@@ -89,14 +92,57 @@ def auth_required(f):
 
 # Home page
 @app.route('/')
+# @auth_required
 def hello_world():  # put application's code here
+    # if 'admin' not in session['authorizations']:  # Check if user is an admin
+    #    return redirect(url_for('view_institution', code=session['user_home']))  # Redirect to institution page
+
     institutions = get_all_institutions()  # Get all institutions from database
+
     return render_template('index.html', institutions=institutions)  # Render home page
+
+
+# Login page
+@app.route('/login')
+def login():
+    if 'username' in session:  # if the user is already logged in
+        return redirect(url_for('hello_world'))  # redirect to the home page
+    else:
+        return render_template('login.html')  # otherwise, render the login page
+
+
+# Login handler
+@app.route('/login/n', methods=['GET'])
+def new_login():
+    session.clear()  # clear the session
+    if 'wrt' in request.cookies:  # if the login cookie is present
+        encoded_token = request.cookies['wrt']  # get the login cookie
+        user_data = jwt.decode(encoded_token, app.config['SHARED_SECRET'], algorithms=['HS256'])  # decode the token
+        user_login(session, user_data)  # log the user in
+
+        if 'exceptions' in session['authorizations']:  # if the user is an exceptions user
+            return redirect(url_for('index'))  # redirect to the home page
+        else:
+            abort(403)  # otherwise, abort with a 403 error
+    else:
+        return "no login cookie"  # if the login cookie is not present, return an error
+
+
+# Logout handler
+@app.route('/logout')
+@auth_required
+def logout():
+    session.clear()  # clear the session
+    return redirect(url_for('index'))  # redirect to the home page
 
 
 # View institution
 @app.route('/<code>')
+# @auth_required
 def view_institution(code):
+    # if session['user_home'] != code and 'admin' not in session['authorizations']:  # Check if user is an admin
+    #    abort(403)
+
     institution = Institution.query.get_or_404(code)  # Get institution from database
     statuses = Institution.get_statuses(institution)  # Get statuses from Institution class
     request_exceptions = []  # Create empty list for request exceptions
@@ -109,8 +155,35 @@ def view_institution(code):
     return render_template('institution.html', institution=institution, exceptions=request_exceptions)
 
 
+# Report download
+@app.route('/<code>/download')
+# @auth_required
+def report_download(code):
+    # if session['user_home'] != code and 'admin' not in session['authorizations']:
+    #    abort(403)  # if the user is not an admin and not at their home institution, abort with a 403 error
+
+    inst = Institution.query.get_or_404(code)  # get the institution
+    reqs = Institution.get_all_requests(inst)  # get all requests for the institution
+
+    buffer = io.BytesIO()
+
+    df = pd.DataFrame.from_dict(reqs)
+    df.to_excel(buffer, index=False)
+
+    headers = {
+        'Content-Disposition': 'attachment; filename=' + code + '.xlsx',
+        'Content-type': 'application/vnd.ms-excel'
+    }
+    return Response(buffer.getvalue(), mimetype='application/vnd.ms-excel', headers=headers)
+
+    # return reqs
+    # return excel.make_response_from_records(records=reqs, file_type='xlsx', status=200, file_name='test')
+    # return excel.make_response_from_query_sets(reqs, columns, 'xlsx', file_name=code)  # return the Excel file
+
+
 # Edit institution
 @app.route('/<code>/edit', methods=['GET', 'POST'])
+@auth_required
 def edit_institution(code):
     institution = Institution.query.get_or_404(code)  # Get institution from database
     form = InstitutionForm(obj=institution)  # Load form with institution data
@@ -126,6 +199,7 @@ def edit_institution(code):
 
 # Add institution
 @app.route('/add', methods=['GET', 'POST'])
+@auth_required
 def add_institution():
     form = InstitutionForm()  # Load form
 

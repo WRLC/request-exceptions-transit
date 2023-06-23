@@ -29,6 +29,7 @@ pycparser==2.21
 pyexcel==0.7.0
 pyexcel-io==0.6.6
 pyexcel-webio==0.1.4
+PyJWT==2.7.0
 PyMySQL==1.0.3
 python-dateutil==2.8.2
 pytz==2023.3
