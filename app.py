@@ -121,7 +121,7 @@ def new_login():
         user_login(session, user_data)  # log the user in
 
         if 'exceptions' in session['authorizations']:  # if the user is an exceptions user
-            return redirect(url_for('index'))  # redirect to the home page
+            return redirect(url_for('hello_world'))  # redirect to the home page
         else:
             abort(403)  # otherwise, abort with a 403 error
     else:
@@ -133,7 +133,7 @@ def new_login():
 @auth_required
 def logout():
     session.clear()  # clear the session
-    return redirect(url_for('index'))  # redirect to the home page
+    return redirect(url_for('hello_world'))  # redirect to the home page
 
 
 # View institution
