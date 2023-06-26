@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
-from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login
+from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
+    get_all_last_updates
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -41,7 +42,7 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=22)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=23)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
@@ -96,8 +97,9 @@ def hello_world():  # put application's code here
     #    return redirect(url_for('view_institution', code=session['user_home']))  # Redirect to institution page
 
     institutions = get_all_institutions()  # Get all institutions from database
+    updates = get_all_last_updates()  # Get all last updates from database
 
-    return render_template('index.html', institutions=institutions)  # Render home page
+    return render_template('index.html', institutions=institutions, updates=updates)  # Render home page
 
 
 # Login page
@@ -142,7 +144,8 @@ def view_institution(code):
     #    abort(403)
 
     institution = Institution.query.get_or_404(code)  # Get institution from database
-    statuses = Institution.get_statuses(institution)  # Get statuses from Institution class
+    updated = Institution.get_last_update(institution)  # Get last updated datetime for nstitution
+    statuses = Institution.get_statuses(institution)  # Get statuses for institution class
     request_exceptions = []  # Create empty list for request exceptions
 
     for status in statuses:  # Loop through statuses
@@ -150,7 +153,7 @@ def view_institution(code):
         request_exceptions.append(exceptions)  # Add exceptions to list
 
     # Render institution page
-    return render_template('institution.html', institution=institution, exceptions=request_exceptions)
+    return render_template('institution.html', institution=institution, updated=updated, exceptions=request_exceptions)
 
 
 # Report download

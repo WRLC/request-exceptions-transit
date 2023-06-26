@@ -28,6 +28,20 @@ class Institution(db.Model):
     def __repr__(self):
         return '<Institution %r>' % self.code
 
+    # Get institution's last update datetime
+    def get_last_update(self):
+        updated = db.session.execute(
+            db.select(
+                InstUpdate
+            ).filter(
+                InstUpdate.instcode == self.code
+            ).order_by(
+                InstUpdate.last_update.desc()
+            )
+        ).first()
+
+        return updated
+
     # Get all current RequestExceptions statuses for the institution
     def get_statuses(self):
         statuses = db.session.execute(
@@ -74,6 +88,7 @@ class Institution(db.Model):
         ).mappings().all()
         return requests
 
+    # Get all current RequestExceptions for all institutions
     def get_all_requests(self):
         ib = aliased(Institution)
         il = aliased(Institution)
@@ -309,3 +324,14 @@ def add_user(session, admincheck):
     )
     db.session.add(user)  # Add the user to the database
     db.session.commit()  # Commit the changes
+
+
+# Get all last updated times for institutions
+def get_all_last_updates():
+    updates = db.session.execute(
+        db.select(
+            InstUpdate.instcode, db.func.max(InstUpdate.last_update).label('last_update')
+        ).group_by(InstUpdate.instcode)
+    ).all()
+
+    return updates
