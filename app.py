@@ -37,7 +37,6 @@ with app.app_context():  # need to be in app context to create the database
 # scheduler
 scheduler = APScheduler()  # create the scheduler
 scheduler.init_app(app)  # initialize the scheduler
-scheduler.scheduler.scheduled_job()
 scheduler.start()  # start the scheduler
 atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when exiting the app
 
