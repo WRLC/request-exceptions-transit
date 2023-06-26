@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates
+    get_all_last_updates, User
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -177,10 +177,6 @@ def report_download(code):
     }
     return Response(buffer.getvalue(), mimetype='application/vnd.ms-excel', headers=headers)
 
-    # return reqs
-    # return excel.make_response_from_records(records=reqs, file_type='xlsx', status=200, file_name='test')
-    # return excel.make_response_from_query_sets(reqs, columns, 'xlsx', file_name=code)  # return the Excel file
-
 
 # Edit institution
 @app.route('/<code>/edit', methods=['GET', 'POST'])
@@ -210,6 +206,13 @@ def add_institution():
         return redirect(url_for('view_institution', code=form.code.data))  # Redirect to view institution page
 
     return render_template('add_institution.html', form=form)  # Render add institution page
+
+
+# View users
+@app.route('/users')
+def view_users():
+    users = db.session.execute(db.select(User).order_by(User.last_login.desc())).scalars()  # get all users
+    return render_template('users.html', users=users)  # render the users admin page
 
 
 if __name__ == '__main__':
