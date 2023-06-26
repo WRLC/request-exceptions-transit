@@ -6,44 +6,46 @@
             {{ institution.name }}
         {% endblock %}
     </h2>
-    <details class="mb-3">
-        <summary>Institution Details</summary>
-        <table class="table table-bordered table-hover table-sm">
-            <tr>
-                <th class="table-dark">Code</th>
-                <td>{{ institution.code }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">Name</th>
-                <td>{{ institution.name }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">Fulfillment Code</th>
-                <td>{{ institution.fulfillment_code }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">Partner Code</th>
-                <td>{{ institution.partner_code }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">API Key</th>
-                <td>{{ institution.key }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">Exceptions Path</th>
-                <td>{{ institution.exceptions }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">External Requests in Transit Path</th>
-                <td>{{ institution.ext_requests_in_transit }}</td>
-            </tr>
-            <tr>
-                <th class="table-dark">In Transit Data Path</th>
-                <td>{{ institution.in_transit_data }}</td>
-            </tr>
-        </table>
-        <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
-    </details>
+    {% if 'admin' in session['authorizations'] %}
+        <details class="mb-3">
+            <summary>Institution Details</summary>
+            <table class="table table-bordered table-hover table-sm">
+                <tr>
+                    <th class="table-dark">Code</th>
+                    <td>{{ institution.code }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">Name</th>
+                    <td>{{ institution.name }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">Fulfillment Code</th>
+                    <td>{{ institution.fulfillment_code }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">Partner Code</th>
+                    <td>{{ institution.partner_code }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">API Key</th>
+                    <td>{{ institution.key }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">Exceptions Path</th>
+                    <td>{{ institution.exceptions }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">External Requests in Transit Path</th>
+                    <td>{{ institution.ext_requests_in_transit }}</td>
+                </tr>
+                <tr>
+                    <th class="table-dark">In Transit Data Path</th>
+                    <td>{{ institution.in_transit_data }}</td>
+                </tr>
+            </table>
+            <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
+        </details>
+    {% endif %}
     <div class="row mb-2">
         <div class="col">
             <span class="text-muted">Last Updated: {{ updated[0].last_update }}</span>

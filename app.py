@@ -91,10 +91,10 @@ def auth_required(f):
 
 # Home page
 @app.route('/')
-# @auth_required
+@auth_required
 def hello_world():  # put application's code here
-    # if 'admin' not in session['authorizations']:  # Check if user is an admin
-    #    return redirect(url_for('view_institution', code=session['user_home']))  # Redirect to institution page
+    if 'admin' not in session['authorizations']:  # Check if user is an admin
+        return redirect(url_for('view_institution', code=session['user_home']))  # Redirect to institution page
 
     institutions = get_all_institutions()  # Get all institutions from database
     updates = get_all_last_updates()  # Get all last updates from database
@@ -138,10 +138,10 @@ def logout():
 
 # View institution
 @app.route('/<code>')
-# @auth_required
+@auth_required
 def view_institution(code):
-    # if session['user_home'] != code and 'admin' not in session['authorizations']:  # Check if user is an admin
-    #    abort(403)
+    if session['user_home'] != code and 'admin' not in session['authorizations']:  # Check if user is an admin
+        abort(403)
 
     institution = Institution.query.get_or_404(code)  # Get institution from database
     updated = Institution.get_last_update(institution)  # Get last updated datetime for nstitution
@@ -158,10 +158,10 @@ def view_institution(code):
 
 # Report download
 @app.route('/<code>/download')
-# @auth_required
+@auth_required
 def report_download(code):
-    # if session['user_home'] != code and 'admin' not in session['authorizations']:
-    #    abort(403)  # if the user is not an admin and not at their home institution, abort with a 403 error
+    if session['user_home'] != code and 'admin' not in session['authorizations']:
+        abort(403)  # if the user is not an admin and not at their home institution, abort with a 403 error
 
     inst = Institution.query.get_or_404(code)  # get the institution
     reqs = Institution.get_all_requests(inst)  # get all requests for the institution
@@ -182,6 +182,9 @@ def report_download(code):
 @app.route('/<code>/edit', methods=['GET', 'POST'])
 @auth_required
 def edit_institution(code):
+    if 'admin' not in session['authorizations']:
+        abort(403)  # if the user is not an admin, abort with a 403 error
+
     institution = Institution.query.get_or_404(code)  # Get institution from database
     form = InstitutionForm(obj=institution)  # Load form with institution data
 
@@ -198,6 +201,9 @@ def edit_institution(code):
 @app.route('/add', methods=['GET', 'POST'])
 @auth_required
 def add_institution():
+    if 'admin' not in session['authorizations']:
+        abort(403)  # if the user is not an admin, abort with a 403 error
+
     form = InstitutionForm()  # Load form
 
     if form.validate_on_submit():  # If form is submitted and valid
@@ -210,7 +216,10 @@ def add_institution():
 
 # View users
 @app.route('/users')
+@auth_required
 def view_users():
+    if 'admin' not in session['authorizations']:
+        abort(403)  # if the user is not an admin, abort with a 403 error
     users = db.session.execute(db.select(User).order_by(User.last_login.desc())).scalars()  # get all users
     return render_template('users.html', users=users)  # render the users admin page
 
