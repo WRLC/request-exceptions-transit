@@ -37,12 +37,13 @@ with app.app_context():  # need to be in app context to create the database
 # scheduler
 scheduler = APScheduler()  # create the scheduler
 scheduler.init_app(app)  # initialize the scheduler
+scheduler.scheduler.scheduled_job()
 scheduler.start()  # start the scheduler
 atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when exiting the app
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=55)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=55, max_instances=3)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
