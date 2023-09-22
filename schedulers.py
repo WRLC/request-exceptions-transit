@@ -3,12 +3,12 @@ from models import db, get_all_institutions, RequestException, ExternalRequestIn
 from datetime import datetime
 from bs4 import BeautifulSoup
 from logging.handlers import TimedRotatingFileHandler
-from settings import scheduler_log_dir
+from settings import log_dir
 import logging
 
 # scheduler log
-logdir = scheduler_log_dir
-log_file = logdir + '/scheduler.log'
+logdir = log_dir  # set the log directory
+log_file = logdir + '/scheduler.log'  # set the log file
 scheduler_log = logging.getLogger('scheduler')  # create the scheduler log
 scheduler_log.setLevel(logging.INFO)  # set the scheduler log level
 file_handler = TimedRotatingFileHandler(log_file, when='midnight')  # create a file handler

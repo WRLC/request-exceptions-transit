@@ -8,6 +8,7 @@ from logging.handlers import TimedRotatingFileHandler
 from flask_apscheduler import APScheduler
 import atexit
 import schedulers
+import emails
 import jwt
 import pandas as pd
 import io
@@ -46,6 +47,13 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
+
+
+# Background task to send emails
+@scheduler.task('cron', id='send_emails', hour=6, max_instances=1)  # run at 6am
+def send_emails():
+    with scheduler.app.app_context():
+        emails.send_emails()  # send the emails
 
 
 # set up error handlers & templates for HTTP codes used in abort()

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import StringField, SelectMultipleField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
@@ -235,6 +235,31 @@ class User(db.Model):
     # Constructor
     def __repr__(self):
         return '<User %r>' % self.username
+
+
+# User Day class
+class UserDay(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.ForeignKey(User.id))
+    day = db.Column(db.Integer, nullable=False)
+
+    # Constructor
+    def __repr__(self):
+        return '<UserDay %r>' % self.id
+
+
+class UserSettingsForm(FlaskForm):
+    day = SelectMultipleField(
+        'Day', choices=[
+            (0, 'Monday'),
+            (1, 'Tuesday'),
+            (2, 'Wednesday'),
+            (3, 'Thursday'),
+            (4, 'Friday'),
+            (5, 'Saturday'),
+            (6, 'Sunday')
+        ]
+    )
 
 
 ####################
