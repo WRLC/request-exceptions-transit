@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>
+        {% block page_title %}
+            Edit Settings
+        {% endblock %}
+    </h2>
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            <strong>Days to receive Request Status Exceptions report by email:</strong>
+        </div>
+        <div class="mb-3">
+            {% if 0 in days %}
+                {{ form.sunday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.sunday(class="form-check-input") }}
+            {% endif %}
+            {{ form.sunday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 1 in days %}
+                {{ form.monday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.monday(class="form-check-input") }}
+            {% endif %}
+            {{ form.monday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 2 in days %}
+                {{ form.tuesday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.tuesday(class="form-check-input") }}
+            {% endif %}
+            {{ form.tuesday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 3 in days %}
+                {{ form.wednesday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.wednesday(class="form-check-input") }}
+            {% endif %}
+            {{ form.wednesday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 4 in days %}
+                {{ form.thursday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.thursday(class="form-check-input") }}
+            {% endif %}
+            {{ form.thursday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 5 in days %}
+                {{ form.friday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.friday(class="form-check-input") }}
+            {% endif %}
+            {{ form.friday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            {% if 6 in days %}
+                {{ form.saturday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.saturday(class="form-check-input") }}
+            {% endif %}
+            {{ form.saturday.label(class="form-label") }}
+        </div>
+        <div class="mb-3">
+            <ul>
+                <li><small class="text-muted">Email will be sent at 6am on each checked day.</small></li>
+                <li><small class="text-muted">Report will be attached to email in XLSX format.</small></li>
+            </ul>
+        </div>
+        <div class="actions">
+            <input type="submit" value="Update Settings"  class="btn btn-primary" />
+            <a class="btn btn-secondary" href="{{ url_for('hello_world') }}">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

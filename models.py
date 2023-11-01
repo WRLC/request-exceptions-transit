@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectMultipleField
+from wtforms import StringField, BooleanField
 from wtforms.validators import DataRequired
+from wtforms.widgets import ListWidget, CheckboxInput
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
 from settings import admins
@@ -251,18 +252,15 @@ class UserDay(db.Model):
         return '<UserDay %r>' % self.id
 
 
+# User Settings form class
 class UserSettingsForm(FlaskForm):
-    day = SelectMultipleField(
-        'Day', choices=[
-            (0, 'Monday'),
-            (1, 'Tuesday'),
-            (2, 'Wednesday'),
-            (3, 'Thursday'),
-            (4, 'Friday'),
-            (5, 'Saturday'),
-            (6, 'Sunday')
-        ]
-    )
+    sunday = BooleanField('Sunday', widget=CheckboxInput())
+    monday = BooleanField('Monday', widget=CheckboxInput())
+    tuesday = BooleanField('Tuesday', widget=CheckboxInput())
+    wednesday = BooleanField('Wednesday', widget=CheckboxInput())
+    thursday = BooleanField('Thursday', widget=CheckboxInput())
+    friday = BooleanField('Friday', widget=CheckboxInput())
+    saturday = BooleanField('Saturday', widget=CheckboxInput())
 
 
 ####################

@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User
+    get_all_last_updates, User, UserSettingsForm, UserDay
+from utils import update_user_settings
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -230,6 +231,30 @@ def view_users():
         abort(403)  # if the user is not an admin, abort with a 403 error
     users = db.session.execute(db.select(User).order_by(User.last_login.desc())).scalars()  # get all users
     return render_template('users.html', users=users)  # render the users admin page
+
+
+# Edit uer settings
+@app.route('/settings', methods=['GET', 'POST'])
+@auth_required
+def edit_settings():
+    # get the user from the database
+    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
+    days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars()  # get the user's days
+    userdays = []  # create an empty list for the user's days
+
+    for day in days:  # for each existing user day
+        userdays.append(day.day)  # add the day to the list
+
+    form = UserSettingsForm()  # load the form
+
+    # if the form is submitted and valid
+    if form.validate_on_submit():
+        update_user_settings(form, user)  # update the user settings
+        flash('Settings updated successfully', 'success')  # flash a success message
+        return redirect(url_for('hello_world'))
+
+    # render the settings page
+    return render_template('settings.html', form=form, days=userdays)
 
 
 if __name__ == '__main__':
