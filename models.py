@@ -230,6 +230,7 @@ class User(db.Model):
     username = db.Column(db.String(255), nullable=False)
     displayname = db.Column(db.String(255), nullable=True)
     instcode = db.Column(db.ForeignKey(Institution.code))
+    emailaddress = db.Column(db.String(255), nullable=True)
     admin = db.Column(db.Boolean, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
@@ -292,6 +293,7 @@ def user_login(session, user_data):
     session['user_home'] = user_data['inst']  # Set the user's home institution
     session['display_name'] = user_data['full_name']  # Set the user's display name
     session['authorizations'] = user_data['authorizations']  # Set the user's authorizations
+    session['email'] = user_data['email']  # Set the user's email
 
     user = check_user(session['username'])  # Check if the user exists in the database
 
@@ -345,6 +347,7 @@ def add_user(session, admincheck):
         username=session['username'],
         displayname=session['display_name'],
         instcode=session['user_home'],
+        emailaddress=session['email'],
         admin=admincheck,
         last_login=datetime.now()
     )

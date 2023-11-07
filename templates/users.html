@@ -12,6 +12,7 @@
                 <th>User Name</th>
                 <th>Display Name</th>
                 <th>Institution</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Last Login</th>
             </tr>
@@ -22,6 +23,7 @@
                     <td>{{ user.username }}</td>
                     <td>{{ user.displayname }}</td>
                     <td>{{ user.instcode }}</td>
+                    <td>{{ user.emailaddress }}</td>
                     {% if user.admin == 1 %}
                         <td>Admin</td>
                     {% else %}
