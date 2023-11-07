@@ -28,3 +28,7 @@
     vertical-align: middle;
     border: 0;
 }
+
+.form-control#day {
+    list-style: none;
+}

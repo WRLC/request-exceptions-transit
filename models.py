@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import StringField, BooleanField
 from wtforms.validators import DataRequired
+from wtforms.widgets import ListWidget, CheckboxInput
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
 from settings import admins
@@ -229,12 +230,38 @@ class User(db.Model):
     username = db.Column(db.String(255), nullable=False)
     displayname = db.Column(db.String(255), nullable=True)
     instcode = db.Column(db.ForeignKey(Institution.code))
+    emailaddress = db.Column(db.String(255), nullable=True)
     admin = db.Column(db.Boolean, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
     # Constructor
     def __repr__(self):
         return '<User %r>' % self.username
+
+
+# User Day class
+class UserDay(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.ForeignKey(User.id))
+    day = db.Column(db.Integer, nullable=False)
+    __table_args__ = (
+        db.UniqueConstraint('user', 'day', name='_user_day_uc'),
+    )
+
+    # Constructor
+    def __repr__(self):
+        return '<UserDay %r>' % self.id
+
+
+# User Settings form class
+class UserSettingsForm(FlaskForm):
+    sunday = BooleanField('Sunday', widget=CheckboxInput())
+    monday = BooleanField('Monday', widget=CheckboxInput())
+    tuesday = BooleanField('Tuesday', widget=CheckboxInput())
+    wednesday = BooleanField('Wednesday', widget=CheckboxInput())
+    thursday = BooleanField('Thursday', widget=CheckboxInput())
+    friday = BooleanField('Friday', widget=CheckboxInput())
+    saturday = BooleanField('Saturday', widget=CheckboxInput())
 
 
 ####################
@@ -266,6 +293,7 @@ def user_login(session, user_data):
     session['user_home'] = user_data['inst']  # Set the user's home institution
     session['display_name'] = user_data['full_name']  # Set the user's display name
     session['authorizations'] = user_data['authorizations']  # Set the user's authorizations
+    session['email'] = user_data['email']  # Set the user's email
 
     user = check_user(session['username'])  # Check if the user exists in the database
 
@@ -319,6 +347,7 @@ def add_user(session, admincheck):
         username=session['username'],
         displayname=session['display_name'],
         instcode=session['user_home'],
+        emailaddress=session['email'],
         admin=admincheck,
         last_login=datetime.now()
     )
