@@ -299,9 +299,10 @@ def user_login(session, user_data):
 
     # If the user is in the database...
     if user is not None:
-        set_user_admin(user, session)  # ..set the user's admin status
+        set_email(user, session)  # ...set the user's email address
+        set_user_admin(user, session)  # ...set the user's admin status
         if 'exceptions' in session['authorizations']:
-            set_last_login(user)  # ..set the last login time for the user
+            set_last_login(user)  # ...set the last login time for the user
 
     # If the user isn't in the database...
     else:
@@ -313,6 +314,12 @@ def user_login(session, user_data):
 def check_user(username):
     user = db.session.execute(db.select(User).filter(User.username == username)).scalar_one_or_none()
     return user
+
+
+# Set the user's email address
+def set_email(user, session):
+    user.emailaddress = session['email']
+    db.session.commit()
 
 
 # Set the last login time for the user
