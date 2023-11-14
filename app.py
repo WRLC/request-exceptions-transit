@@ -51,7 +51,7 @@ def update_reports():
 
 
 # Background task to send emails
-@scheduler.task('cron', id='send_emails', hour=46, max_instances=1)  # run at 6am
+@scheduler.task('cron', id='send_emails', hour=6, max_instances=1)  # run at 6am
 def send_emails():
     with scheduler.app.app_context():
         emails.send_emails()  # send the emails
