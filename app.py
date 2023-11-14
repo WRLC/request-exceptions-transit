@@ -1,8 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay
-from utils import update_user_settings
+    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -14,6 +13,7 @@ import jwt
 import pandas as pd
 import io
 from functools import wraps
+
 
 app = Flask(__name__)
 
@@ -44,14 +44,14 @@ atexit.register(lambda: scheduler.shutdown())  # Shut down the scheduler when ex
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=55, max_instances=3)  # run at 55 minutes past the hour
+@scheduler.task('cron', id='update_reports', hour=5, max_instances=1)  # run at 55 minutes past the hour
 def update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         schedulers.update_reports()  # update the reports
 
 
 # Background task to send emails
-@scheduler.task('cron', id='send_emails', hour=6, max_instances=1)  # run at 6am
+@scheduler.task('cron', id='send_emails', hour=46, max_instances=1)  # run at 6am
 def send_emails():
     with scheduler.app.app_context():
         emails.send_emails()  # send the emails

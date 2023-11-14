@@ -2,4 +2,6 @@ database = ''
 shared_secret = ''
 admins = []
 log_file = ''
-scheduler_log_dir = ''
+log_dir = ''
+smtp_address = ''
+sender_email = ''
