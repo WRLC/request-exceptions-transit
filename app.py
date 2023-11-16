@@ -251,10 +251,10 @@ def edit_settings():
     if form.validate_on_submit():
         update_user_settings(form, user)  # update the user settings
         flash('Settings updated successfully', 'success')  # flash a success message
-        return redirect(url_for('hello_world'))
+        return redirect(url_for('edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays)
+    return render_template('settings.html', form=form, days=userdays, user=user)
 
 
 if __name__ == '__main__':
