@@ -61,7 +61,7 @@ def send_emails():
             continue  # skip to the next institution
 
         df = pd.DataFrame.from_dict(reqs)  # create a dataframe from the requests
-        df.to_excel('/tmp/{}.xlsx'.format(institution), index=False, header=False)  # write dataframe to excel file
+        df.to_excel('/tmp/{}.xlsx'.format(institution), index=False, header=True)  # write dataframe to excel file
 
         # Create email
         sender_email = settings.sender_email  # sender email address
