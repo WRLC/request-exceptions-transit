@@ -1,10 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField
 from wtforms.validators import DataRequired
-from wtforms.widgets import ListWidget, CheckboxInput
+from wtforms.widgets import CheckboxInput
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
-from settings import admins
+from settings import admins, allreports
 from datetime import datetime
 
 db = SQLAlchemy()  # Create a database object
@@ -232,6 +232,7 @@ class User(db.Model):
     instcode = db.Column(db.ForeignKey(Institution.code))
     emailaddress = db.Column(db.String(255), nullable=True)
     admin = db.Column(db.Boolean, nullable=False)
+    allreports = db.Column(db.Boolean, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
     # Constructor
@@ -301,13 +302,17 @@ def user_login(session, user_data):
     if user is not None:
         set_email(user, session)  # ...set the user's email address
         set_user_admin(user, session)  # ...set the user's admin status
+        set_user_allreports(user, session)  # ...set the user's allreports status
         if 'exceptions' in session['authorizations']:
             set_last_login(user)  # ...set the last login time for the user
 
     # If the user isn't in the database...
     else:
         admincheck = admincheck_user(session)  # ...check if the user is an admin
-        add_user(session, admincheck)  # ...add the user to the database
+        allreportscheck = allreportscheck_user(session)  # ...check if the user is an admin
+        add_user(session, admincheck, allreportscheck)  # ...add the user to the database
+        set_user_admin(user, session)  # ...set the user's admin status
+        set_user_allreports(user, session)  # ...set the user's allreports status
 
 
 # Check if the user exists in the database
@@ -346,8 +351,26 @@ def admincheck_user(session):
     return admincheck
 
 
+# Set the user's allreport status based on the database
+def set_user_allreports(user, session):
+    if user.allreports is True:  # Check if the user is an admin
+        if 'exceptions' not in session['authorizations']:
+            session['authorizations'].append('exceptions')  # If they are, add the admin authorization to the session
+        session['authorizations'].append('allreports')  # If they are, add the admin authorization to the session
+
+
+# Check if the username is in the allreports list
+def allreportscheck_user(session):
+    if session['username'] in allreports:  # Check if the user is an admin
+        allreportscheck = True  # If they are, set admincheck to True
+    else:
+        allreportscheck = False  # If they are not, set admincheck to False
+
+    return allreportscheck
+
+
 # Add the user to the database
-def add_user(session, admincheck):
+def add_user(session, admincheck, allreportscheck):
 
     # Create the user object
     user = User(
@@ -356,6 +379,7 @@ def add_user(session, admincheck):
         instcode=session['user_home'],
         emailaddress=session['email'],
         admin=admincheck,
+        allreports=allreportscheck,
         last_login=datetime.now()
     )
     db.session.add(user)  # Add the user to the database
