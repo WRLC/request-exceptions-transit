@@ -102,7 +102,8 @@ def auth_required(f):
 @app.route('/')
 @auth_required
 def hello_world():  # put application's code here
-    if 'admin' not in session['authorizations']:  # Check if user is an admin
+    # Check if user is an admin or has allreports authorization
+    if 'admin' not in session['authorizations'] and 'allreports' not in session['authorizations']:
         return redirect(url_for('view_institution', code=session['user_home']))  # Redirect to institution page
 
     institutions = get_all_institutions()  # Get all institutions from database
@@ -149,7 +150,13 @@ def logout():
 @app.route('/<code>')
 @auth_required
 def view_institution(code):
-    if session['user_home'] != code and 'admin' not in session['authorizations']:  # Check if user is an admin
+    if (
+        session['user_home'] != code and  # Check if user is at their home institution
+        'admin' not in session['authorizations'] and  # Check if user is an admin
+        'allreports' not in session['authorizations']  # Check if user has allreports authorization
+    ):
+        # if the user is not at their home institution, doesn't have allreports authorization, and is not an admin,
+        # abort with a 403 error
         abort(403)
 
     institution = Institution.query.get_or_404(code)  # Get institution from database
@@ -169,8 +176,14 @@ def view_institution(code):
 @app.route('/<code>/download')
 @auth_required
 def report_download(code):
-    if session['user_home'] != code and 'admin' not in session['authorizations']:
-        abort(403)  # if the user is not an admin and not at their home institution, abort with a 403 error
+    if (
+        session['user_home'] != code and  # Check if user is at their home institution
+        'admin' not in session['authorizations'] and  # Check if user is an admin
+        'allreports' not in session['authorizations']  # Check if user has allreports authorization
+    ):
+        # if the user is not at their home institution, doesn't have allreports authorization, and is not an admin,
+        # abort with a 403 error
+        abort(403)
 
     inst = Institution.query.get_or_404(code)  # get the institution
     reqs = Institution.get_all_requests(inst)  # get all requests for the institution

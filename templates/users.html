@@ -13,7 +13,8 @@
                 <th>Display Name</th>
                 <th>Institution</th>
                 <th>Email</th>
-                <th>Role</th>
+                <th>Admin</th>
+                <th>All Reports</th>
                 <th>Last Login</th>
             </tr>
         </thead>
@@ -25,9 +26,14 @@
                     <td>{{ user.instcode }}</td>
                     <td>{{ user.emailaddress }}</td>
                     {% if user.admin == 1 %}
-                        <td>Admin</td>
+                        <td>Y</td>
                     {% else %}
-                        <td>User</td>
+                        <td>N</td>
+                    {% endif %}
+                    {% if user.allreports == 1 %}
+                        <td>Y</td>
+                    {% else %}
+                        <td>N</td>
                     {% endif %}
                     <td>{{ user.last_login }}</td>
                 </tr>
