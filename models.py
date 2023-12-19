@@ -243,7 +243,7 @@ class User(db.Model):
 # User Day class
 class UserDay(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.ForeignKey(User.id))
+    user = db.Column(db.ForeignKey(User.id), nullable=False)
     day = db.Column(db.Integer, nullable=False)
     __table_args__ = (
         db.UniqueConstraint('user', 'day', name='_user_day_uc'),
@@ -252,6 +252,19 @@ class UserDay(db.Model):
     # Constructor
     def __repr__(self):
         return '<UserDay %r>' % self.id
+
+
+class StatusUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(255), nullable=False)
+    user = db.Column(db.ForeignKey(User.id), nullable=False)
+    __table_args__ = (
+        db.UniqueConstraint('status', 'user', name='_status_user_uc'),
+    )
+
+    # Constructor
+    def __repr__(self):
+        return '<StatusUser %r>' % self.id
 
 
 # User Settings form class
@@ -263,6 +276,46 @@ class UserSettingsForm(FlaskForm):
     thursday = BooleanField('Thursday', widget=CheckboxInput())
     friday = BooleanField('Friday', widget=CheckboxInput())
     saturday = BooleanField('Saturday', widget=CheckboxInput())
+    AUTOMATIC_RENEW = BooleanField('Automatic renew', widget=CheckboxInput())
+    AUTO_WILL_SUPPLY = BooleanField('Automatic will supply', widget=CheckboxInput())
+    BAD_CITATION = BooleanField('Bad citation', widget=CheckboxInput())
+    CANCEL_NOT_ACCEPTED = BooleanField('Cancel request not accepted', widget=CheckboxInput())
+    CANCELLED = BooleanField('Cancelled by partner', widget=CheckboxInput())
+    CLAIMED = BooleanField('Claimed', widget=CheckboxInput())
+    CONDITIONAL = BooleanField('Conditional', widget=CheckboxInput())
+    REQUEST_CREATED_BOR = BooleanField('Created borrowing request', widget=CheckboxInput())
+    DAMAGED_COMMUNICATED = BooleanField('Damaged communicated', widget=CheckboxInput())
+    DECLARED_LOST = BooleanField('Declared lost by partner', widget=CheckboxInput())
+    RECEIVED_DIGITALLY = BooleanField('Digitally received by library', widget=CheckboxInput())
+    EXPIRED = BooleanField('Expired', widget=CheckboxInput())
+    EXTERNALLY_OBTAINED = BooleanField('Externally Obtained', widget=CheckboxInput())
+    LENDER_CHECK_IN = BooleanField('Lender check in', widget=CheckboxInput())
+    LOCAL_HOLDING = BooleanField('Local holding', widget=CheckboxInput())
+    LOCATE_FAILED = BooleanField('Locate failed', widget=CheckboxInput())
+    LOCATE_IN_PROCESS = BooleanField('Locate in process', widget=CheckboxInput())
+    LOST_AND_FEE_PAID = BooleanField('Lost and fee paid', widget=CheckboxInput())
+    LOST_COMMUNICATED = BooleanField('Lost communicated', widget=CheckboxInput())
+    MANUAL_RENEW = BooleanField('Manual renew', widget=CheckboxInput())
+    MEDIATED_RENEWAL = BooleanField('Mediated Patron Renewal', widget=CheckboxInput())
+    OVERDUE_ITEM = BooleanField('Overdue request', widget=CheckboxInput())
+    PENDING_APPROVAL = BooleanField('Pending Approval', widget=CheckboxInput())
+    REACTIVATED = BooleanField('Reactivated', widget=CheckboxInput())
+    READY_TO_SEND = BooleanField('Ready to be sent', widget=CheckboxInput())
+    RECALLED_BOR = BooleanField('Recalled by partner', widget=CheckboxInput())
+    REJECT = BooleanField('Reject', widget=CheckboxInput())
+    RENEW_NOT_ACCEPTED = BooleanField('Renew request not accepted', widget=CheckboxInput())
+    RENEW_REQUESTED = BooleanField('Renew requested', widget=CheckboxInput())
+    RENEWED = BooleanField('Renewed by partner', widget=CheckboxInput())
+    DAMAGED = BooleanField('Reported damaged item to partner', widget=CheckboxInput())
+    REPORT_LOST = BooleanField('Reported lost item to partner', widget=CheckboxInput())
+    REQUEST_ACCEPTED = BooleanField('Request accepted', widget=CheckboxInput())
+    REQUEST_SENT = BooleanField('Request sent to partner', widget=CheckboxInput())
+    RETURNED_TO_PARTNER = BooleanField('Returned item to partner', widget=CheckboxInput())
+    SHIPPED_DIGITALLY = BooleanField('Shipped Digitally', widget=CheckboxInput())
+    SHIPPED_PHYSICALLY = BooleanField('Shipped Physically', widget=CheckboxInput())
+    CANCEL_REPLY = BooleanField('Waiting for cancel response', widget=CheckboxInput())
+    RECEIVE_DIGITALLY_REPLY = BooleanField('Waiting for receive digitally', widget=CheckboxInput())
+    WILL_SUPPLY = BooleanField('Will supply', widget=CheckboxInput())
 
 
 ####################
@@ -400,18 +453,60 @@ def get_all_last_updates():
 # Update user settings
 def update_user_settings(form, user):
     db.session.execute(db.delete(UserDay).where(UserDay.user == user.id))  # delete all the user's days
-    userdays = form.data  # get the days from the form
     days = [
-        (0, userdays['sunday']),
-        (1, userdays['monday']),
-        (2, userdays['tuesday']),
-        (3, userdays['wednesday']),
-        (4, userdays['thursday']),
-        (5, userdays['friday']),
-        (6, userdays['saturday']),
+        (0, form.data['sunday']),
+        (1, form.data['monday']),
+        (2, form.data['tuesday']),
+        (3, form.data['wednesday']),
+        (4, form.data['thursday']),
+        (5, form.data['friday']),
+        (6, form.data['saturday']),
     ]
     for day in days:  # for each day
         if day[1] is True:
             user_day = UserDay(user=user.id, day=day[0])  # create a new user day
             db.session.add(user_day)  # add the user day to the database
+
+    db.session.execute(db.delete(StatusUser).where(StatusUser.user == user.id))  # delete all the user's statuses
+    statuses = [
+        ('AUTOMATIC_RENEW', form.data['AUTOMATIC_RENEW']),
+        ('AUTO_WILL_SUPPLY', form.data['AUTO_WILL_SUPPLY']),
+        ('BAD_CITATION', form.data['BAD_CITATION']),
+        ('CANCEL_NOT_ACCEPTED', form.data['CANCEL_NOT_ACCEPTED']),
+        ('CANCELLED', form.data['CANCELLED']),
+        ('CLAIMED', form.data['CLAIMED']),
+        ('CONDITIONAL', form.data['CONDITIONAL']),
+        ('REQUEST_CREATED_BOR', form.data['REQUEST_CREATED_BOR']),
+        ('DAMAGED_COMMUNICATED', form.data['DAMAGED_COMMUNICATED']),
+        ('DECLARED_LOST', form.data['DECLARED_LOST']),
+        ('RECEIVED_DIGITALLY', form.data['RECEIVED_DIGITALLY']),
+        ('EXPIRED', form.data['EXPIRED']),
+        ('EXTERNALLY_OBTAINED', form.data['EXTERNALLY_OBTAINED']),
+        ('LENDER_CHECK_IN', form.data['LENDER_CHECK_IN']),
+        ('LOCAL_HOLDING', form.data['LOCAL_HOLDING']),
+        ('LOCATE_FAILED', form.data['LOCATE_FAILED']),
+        ('LOCATE_IN_PROCESS', form.data['LOCATE_IN_PROCESS']),
+        ('LOST_AND_FEE_PAID', form.data['LOST_AND_FEE_PAID']),
+        ('LOST_COMMUNICATED', form.data['LOST_COMMUNICATED']),
+        ('MANUAL_RENEW', form.data['MANUAL_RENEW']),
+        ('MEDIATED_RENEWAL', form.data['MEDIATED_RENEWAL']),
+        ('OVERDUE_ITEM', form.data['OVERDUE_ITEM']),
+        ('PENDING_APPROVAL', form.data['PENDING_APPROVAL']),
+        ('REACTIVATED', form.data['REACTIVATED']),
+        ('READY_TO_SEND', form.data['READY_TO_SEND']),
+        ('RECALLED_BOR', form.data['RECALLED_BOR']),
+        ('REJECT', form.data['REJECT']),
+        ('RENEW_NOT_ACCEPTED', form.data['RENEW_NOT_ACCEPTED']),
+        ('RENEW_REQUESTED', form.data['RENEW_REQUESTED']),
+        ('RENEWED', form.data['RENEWED']),
+        ('DAMAGED', form.data['DAMAGED']),
+        ('REPORT_LOST', form.data['REPORT_LOST']),
+        ('REQUEST_ACCEPTED', form.data['REQUEST_ACCEPTED']),
+        ('REQUEST_SENT', form.data['REQUEST_SENT']),
+    ]
+    for status in statuses:  # for each status
+        if status[1] is True:
+            status_user = StatusUser(status=status[0], user=user.id)  # create a new status user
+            db.session.add(status_user)  # add the status user to the database
+
     db.session.commit()  # commit changes to the database

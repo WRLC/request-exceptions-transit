@@ -1,0 +1,40 @@
+AUTOMATIC_RENEW,Automatic renew
+AUTO_WILL_SUPPLY,Automatic will supply
+BAD_CITATION,Bad citation
+CANCEL_NOT_ACCEPTED,Cancel request not accepted
+CANCELLED,Cancelled by partner
+CLAIMED,Claimed
+CONDITIONAL,Conditional
+REQUEST_CREATED_BOR,Created borrowing request
+DAMAGED_COMMUNICATED,Damaged communicated
+DECLARED_LOST,Declared lost by partner
+RECEIVED_DIGITALLY,Digitally received by library
+EXPIRED,Expired
+EXTERNALLY_OBTAINED,Externally Obtained
+LENDER_CHECK_IN,Lender check in
+LOCAL_HOLDING,Local holding
+LOCATE_FAILED,Locate failed
+LOCATE_IN_PROCESS,Locate in process
+LOST_AND_FEE_PAID,Lost and fee paid
+LOST_COMMUNICATED,Lost communicated
+MANUAL_RENEW,Manual renew
+MEDIATED_RENEWAL,Mediated Patron Renewal
+OVERDUE_ITEM,Overdue request
+PENDING_APPROVAL,Pending Approval
+REACTIVATED,Reactivated
+READY_TO_SEND,Ready to be sent
+RECALLED_BOR,Recalled by partner
+REJECT,Reject
+RENEW_NOT_ACCEPTED,Renew request not accepted
+RENEW_REQUESTED,Renew requested
+RENEWED,Renewed by partner
+DAMAGED,Reported damaged item to partner
+REPORT_LOST,Reported lost item to partner
+REQUEST_ACCEPTED,Request accepted
+REQUEST_SENT,Request sent to partner
+RETURNED_TO_PARTNER,Returned item to partner
+SHIPPED_DIGITALLY,Shipped Digitally
+SHIPPED_PHYSICALLY,Shipped Physically
+CANCEL_REPLY,Waiting for cancel response
+RECEIVE_DIGITALLY_REPLY,Waiting for receive digitally
+WILL_SUPPLY,Will supply

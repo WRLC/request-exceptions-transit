@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
-from settings import database, shared_secret, log_file
+from settings import database, shared_secret, log_file, session
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings
+    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -248,15 +248,20 @@ def view_users():
 
 # Edit uer settings
 @app.route('/settings', methods=['GET', 'POST'])
-@auth_required
+#@auth_required
 def edit_settings():
     # get the user from the database
     user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
     days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars()  # get the user's days
+    statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()  # user statuses
     userdays = []  # create an empty list for the user's days
+    userstatuses = []  # create an empty list for the user's statuses
 
     for day in days:  # for each existing user day
         userdays.append(day.day)  # add the day to the list
+
+    for status in statuses:  # for each existing user status
+        userstatuses.append(status.status)
 
     form = UserSettingsForm()  # load the form
 
@@ -267,7 +272,7 @@ def edit_settings():
         return redirect(url_for('edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays, user=user)
+    return render_template('settings.html', form=form, days=userdays, statuses=userstatuses, user=user)
 
 
 if __name__ == '__main__':
