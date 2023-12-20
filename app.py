@@ -172,7 +172,7 @@ def view_institution(code):
 
     for status in statuses:  # Loop through statuses
         exceptions = []  # Create empty list for exceptions
-        if len(userstatuses) > 0:
+        if len(userstatuses.all()) > 0:
             if status.borreqstat in userstatuses:
                 exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions
         else:
@@ -203,7 +203,7 @@ def report_download(code):
     userstatuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()
 
     inst = Institution.query.get_or_404(code)  # get the institution
-    if len(userstatuses) > 0:
+    if len(userstatuses.all()) > 0:
         reqs = Institution.get_all_requests_filtered(inst, userstatuses)  # get all requests for the institution
     else:
         reqs = Institution.get_all_requests(inst)  # get all requests for the institution
