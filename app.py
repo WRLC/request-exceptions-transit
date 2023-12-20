@@ -159,13 +159,24 @@ def view_institution(code):
         # abort with a 403 error
         abort(403)
 
+    # get the user from the database
+    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
+
+    # user statuses
+    userstatuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()
+
     institution = Institution.query.get_or_404(code)  # Get institution from database
     updated = Institution.get_last_update(institution)  # Get last updated datetime for nstitution
     statuses = Institution.get_statuses(institution)  # Get statuses for institution class
     request_exceptions = []  # Create empty list for request exceptions
 
     for status in statuses:  # Loop through statuses
-        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions by status
+        exceptions = []  # Create empty list for exceptions
+        if len(userstatuses) > 0:
+            if status.borreqstat in userstatuses:
+                exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions
+        else:
+            exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
         request_exceptions.append(exceptions)  # Add exceptions to list
 
     # Render institution page
@@ -185,8 +196,17 @@ def report_download(code):
         # abort with a 403 error
         abort(403)
 
+    # get the user from the database
+    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
+
+    # user statuses
+    userstatuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()
+
     inst = Institution.query.get_or_404(code)  # get the institution
-    reqs = Institution.get_all_requests(inst)  # get all requests for the institution
+    if len(userstatuses) > 0:
+        reqs = Institution.get_all_requests_filtered(inst, userstatuses)  # get all requests for the institution
+    else:
+        reqs = Institution.get_all_requests(inst)  # get all requests for the institution
 
     buffer = io.BytesIO()
 
@@ -248,7 +268,7 @@ def view_users():
 
 # Edit uer settings
 @app.route('/settings', methods=['GET', 'POST'])
-#@auth_required
+@auth_required
 def edit_settings():
     # get the user from the database
     user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()

@@ -146,6 +146,65 @@ class Institution(db.Model):
 
         return parsed_requests  # Return the list of parsed requests
 
+    # Get all current RequestExceptions for all institutions filtered by status
+    def get_all_requests_filtered(self, userstatuses):
+        ib = aliased(Institution)
+        il = aliased(Institution)
+        requests = db.session.execute(
+            db.select(
+                RequestException.borreqstat.label('Borrowing Request Status'),
+                RequestException.internalid.label('Internal ID'),
+                RequestException.borcreate.label('Borrowing Request Date'),
+                RequestException.title.label('Title'),
+                RequestException.author.label('Author'),
+                RequestException.networknum.label('Network Number'),
+                RequestException.partnerstat.label('Partner Active Status'),
+                RequestException.reqsend.label('Request Sending Date'),
+                RequestException.days.label('Days Since Request'),
+                RequestException.requestor.label('Requestor'),
+                RequestException.partnername.label('Partner Name'),
+                RequestException.partnercode.label('Partner Code'),
+                ExternalRequestInTransit.request_id.label('In Transit?'),
+                TransitStart.transit_date.label('In Transit Start')
+            ).join(
+                ib, RequestException.instcode == ib.code
+            ).outerjoin(
+                il, RequestException.partnercode == il.partner_code
+            ).outerjoin(
+                ExternalRequestInTransit, (ExternalRequestInTransit.title == RequestException.title) &
+                                          (ExternalRequestInTransit.external_id == ib.fulfillment_code) &
+                                          (ExternalRequestInTransit.instcode == il.code)
+            ).outerjoin(
+                TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
+            ).filter(
+                RequestException.instcode == self.code,
+            ).filter(
+                RequestException.borreqstat.any(userstatuses)
+            ).order_by(
+                RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
+                RequestException.reqsend.desc()
+            )
+        ).mappings().all()
+
+        requests_dict = [dict(row) for row in requests]
+
+        columns = ['Borrowing Request Status', 'Internal ID', 'Borrowing Request Date', 'Title', 'Author',
+                   'Network Number',
+                   'Requestor', 'Partner Active Status', 'Request Sending Date', 'Days Since Request', 'Partner Name',
+                   'Partner Code', 'In Transit?', 'In Transit Start']
+
+        parsed_requests = []  # List to hold parsed requests
+
+        for request in requests_dict:  # Parse requests
+            if request['In Transit?'] is None:  # If the request is not in transit
+                request['In Transit?'] = 'N'  # Set the value to 'N'
+            else:  # If the request is in transit
+                request['In Transit?'] = 'Y'  # Set the value to 'Y'
+            ordered_request = {k: request[k] for k in columns}  # Create a dictionary of the request
+            parsed_requests.append(ordered_request)  # Add the parsed request to the list
+
+        return parsed_requests  # Return the list of parsed requests
+
 
 # Institution form class
 class InstitutionForm(FlaskForm):
