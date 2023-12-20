@@ -14,7 +14,6 @@ import pandas as pd
 import io
 from functools import wraps
 
-
 app = Flask(__name__)
 
 # set up logging to work with WSGI server

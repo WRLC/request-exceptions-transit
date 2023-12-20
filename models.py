@@ -562,6 +562,12 @@ def update_user_settings(form, user):
         ('REPORT_LOST', form.data['REPORT_LOST']),
         ('REQUEST_ACCEPTED', form.data['REQUEST_ACCEPTED']),
         ('REQUEST_SENT', form.data['REQUEST_SENT']),
+        ('RETURNED_TO_PARTNER', form.data['RETURNED_TO_PARTNER']),
+        ('SHIPPED_DIGITALLY', form.data['SHIPPED_DIGITALLY']),
+        ('SHIPPED_PHYSICALLY', form.data['SHIPPED_PHYSICALLY']),
+        ('CANCEL_REPLY', form.data['CANCEL_REPLY']),
+        ('RECEIVE_DIGITALLY_REPLY', form.data['RECEIVE_DIGITALLY_REPLY']),
+        ('WILL_SUPPLY', form.data['WILL_SUPPLY']),
     ]
     for status in statuses:  # for each status
         if status[1] is True:
