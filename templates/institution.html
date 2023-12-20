@@ -65,7 +65,9 @@
                 {% for req in reqs if req.internalid not in slots %}
                     {{ slots.append(req.internalid) or "" }}
                 {% endfor %}
-                {{ reqs[0].borreqstat }} ({{ slots|length }})
+                {% if reqs|length > 0 %}
+                    {{ reqs[0].borreqstat }} ({{ slots|length }})
+                {% endif %}
             </summary>
             <table class="table table-bordered table-hover table-sm report" id="{{ reqs[0].borreqstat|replace(' ', '') }}">
                 <thead class="table-dark sticky-top">
