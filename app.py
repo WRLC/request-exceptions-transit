@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings
+    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -159,13 +159,24 @@ def view_institution(code):
         # abort with a 403 error
         abort(403)
 
+    # get the user from the database
+    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
+
+    # user statuses
+    userstatuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()
+
     institution = Institution.query.get_or_404(code)  # Get institution from database
     updated = Institution.get_last_update(institution)  # Get last updated datetime for nstitution
     statuses = Institution.get_statuses(institution)  # Get statuses for institution class
     request_exceptions = []  # Create empty list for request exceptions
 
     for status in statuses:  # Loop through statuses
-        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions by status
+        exceptions = []  # Create empty list for exceptions
+        if len(userstatuses) > 0:
+            if status.borreqstat in userstatuses:
+                exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions
+        else:
+            exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
         request_exceptions.append(exceptions)  # Add exceptions to list
 
     # Render institution page
@@ -185,8 +196,17 @@ def report_download(code):
         # abort with a 403 error
         abort(403)
 
+    # get the user from the database
+    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
+
+    # user statuses
+    userstatuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()
+
     inst = Institution.query.get_or_404(code)  # get the institution
-    reqs = Institution.get_all_requests(inst)  # get all requests for the institution
+    if len(userstatuses) > 0:
+        reqs = Institution.get_all_requests_filtered(inst, userstatuses)  # get all requests for the institution
+    else:
+        reqs = Institution.get_all_requests(inst)  # get all requests for the institution
 
     buffer = io.BytesIO()
 
@@ -253,10 +273,15 @@ def edit_settings():
     # get the user from the database
     user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
     days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars()  # get the user's days
+    statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()  # user statuses
     userdays = []  # create an empty list for the user's days
+    userstatuses = []  # create an empty list for the user's statuses
 
     for day in days:  # for each existing user day
         userdays.append(day.day)  # add the day to the list
+
+    for status in statuses:  # for each existing user status
+        userstatuses.append(status.status)
 
     form = UserSettingsForm()  # load the form
 
@@ -267,7 +292,7 @@ def edit_settings():
         return redirect(url_for('edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays, user=user)
+    return render_template('settings.html', form=form, days=userdays, statuses=userstatuses, user=user)
 
 
 if __name__ == '__main__':
