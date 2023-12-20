@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
+from flask import Flask, render_template, redirect, url_for, session, flash, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
     get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser
