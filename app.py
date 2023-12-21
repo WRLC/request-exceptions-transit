@@ -1,7 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request, abort, Response
-from settings import database, shared_secret, log_file
+from flask import Flask, render_template, redirect, url_for, session, flash, request, abort, Response
+from settings import database, shared_secret, log_file, saml_sp, site_url
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings
+    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser, LoginForm
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -13,7 +13,6 @@ import jwt
 import pandas as pd
 import io
 from functools import wraps
-
 
 app = Flask(__name__)
 
@@ -113,12 +112,22 @@ def hello_world():  # put application's code here
 
 
 # Login page
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    form = LoginForm()  # load the login form
+    if form.validate_on_submit():
+        institution = form.data['institution']  # get the institution from the form
+        login_url = str(saml_sp)
+        login_url += '/simplesaml/wrlcauth/issue.php?institution='
+        login_url += str(institution)
+        login_url += '&url='
+        login_url += str(site_url)
+        login_url += '/login/n'
+        return redirect(login_url)
     if 'username' in session:  # if the user is already logged in
         return redirect(url_for('hello_world'))  # redirect to the home page
     else:
-        return render_template('login.html')  # otherwise, render the login page
+        return render_template('login.html', form=form)  # otherwise, render the login page
 
 
 # Login handler
@@ -165,7 +174,7 @@ def view_institution(code):
     request_exceptions = []  # Create empty list for request exceptions
 
     for status in statuses:  # Loop through statuses
-        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get exceptions by status
+        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
         request_exceptions.append(exceptions)  # Add exceptions to list
 
     # Render institution page
@@ -253,10 +262,15 @@ def edit_settings():
     # get the user from the database
     user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
     days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars()  # get the user's days
+    statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()  # user statuses
     userdays = []  # create an empty list for the user's days
+    userstatuses = []  # create an empty list for the user's statuses
 
     for day in days:  # for each existing user day
         userdays.append(day.day)  # add the day to the list
+
+    for status in statuses:  # for each existing user status
+        userstatuses.append(status.status)
 
     form = UserSettingsForm()  # load the form
 
@@ -267,7 +281,7 @@ def edit_settings():
         return redirect(url_for('edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays, user=user)
+    return render_template('settings.html', form=form, days=userdays, statuses=userstatuses, user=user)
 
 
 if __name__ == '__main__':
