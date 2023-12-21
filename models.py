@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired
 from wtforms.widgets import CheckboxInput
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
-from settings import admins, allreports
+from settings import admins, allreports, site_url, saml_sp, cookie_issuing_file
 from datetime import datetime
 
 db = SQLAlchemy()  # Create a database object
@@ -416,6 +416,18 @@ def add_institution_form_submit(form):
 def get_all_institutions():
     institutions = db.session.execute(db.select(Institution).order_by(Institution.name)).scalars()
     return institutions
+
+
+# Construct login URL
+def construct_login_url(institution):
+    login_url = saml_sp
+    login_url += cookie_issuing_file
+    login_url += '?institution='
+    login_url += institution
+    login_url += '&url='
+    login_url += site_url
+    login_url += '/login/n'
+    return login_url
 
 
 # Log the user in
