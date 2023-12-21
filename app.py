@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, session, flash, request, abort, Response
-from settings import database, shared_secret, log_file
+from settings import database, shared_secret, log_file, saml_sp, site_url
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser
+    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser, LoginForm
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -112,12 +112,22 @@ def hello_world():  # put application's code here
 
 
 # Login page
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    form = LoginForm()  # load the login form
+    if form.validate_on_submit():
+        institution = form.data['institution']  # get the institution from the form
+        login_url = str(saml_sp)
+        login_url += '/simplesaml/wrlcauth/issue.php?institution='
+        login_url += str(institution)
+        login_url += '&url='
+        login_url += str(site_url)
+        login_url += '/login/n'
+        return redirect(login_url)
     if 'username' in session:  # if the user is already logged in
         return redirect(url_for('hello_world'))  # redirect to the home page
     else:
-        return render_template('login.html')  # otherwise, render the login page
+        return render_template('login.html', form=form)  # otherwise, render the login page
 
 
 # Login handler

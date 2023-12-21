@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField
+from wtforms import StringField, BooleanField, SelectField
 from wtforms.validators import DataRequired
 from wtforms.widgets import CheckboxInput
 from flask_sqlalchemy import SQLAlchemy
@@ -375,6 +375,26 @@ class UserSettingsForm(FlaskForm):
     CANCEL_REPLY = BooleanField('Waiting for cancel response', widget=CheckboxInput())
     RECEIVE_DIGITALLY_REPLY = BooleanField('Waiting for receive digitally', widget=CheckboxInput())
     WILL_SUPPLY = BooleanField('Will supply', widget=CheckboxInput())
+
+
+# Login form class
+class LoginForm(FlaskForm):
+    institution = SelectField('Login At', choices=[
+        ('au', 'American University'),
+        ('amulaw', 'AU Washington College of Law'),
+        ('cu', 'Catholic University of America'),
+        ('ga', 'Gallaudet University'),
+        ('gm', 'George Mason University'),
+        ('gw', 'George Washington University'),
+        ('gwalaw', 'GW Jacob Burns Law Library'),
+        ('hi', 'GW Himmelfarb Health Sciences Library'),
+        ('gt', 'Georgetown University'),
+        ('gt-law', 'Georgetown University Law'),
+        ('hu', 'Howard University'),
+        ('mu', 'Marymount University'),
+        ('dc', 'University of the District of Columbia'),
+        ('wr', 'WRLC SCF'),
+    ])
 
 
 ####################
