@@ -1,8 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, session, flash, request, abort, Response
 from settings import database, shared_secret, log_file
 from models import db, InstitutionForm, add_institution_form_submit, Institution, get_all_institutions, user_login, \
-    get_all_last_updates, User, UserSettingsForm, UserDay, update_user_settings, StatusUser, LoginForm, \
-    construct_login_url
+    get_all_last_updates, User, UserSettingsForm, update_user_settings, LoginForm, \
+    construct_login_url, get_user, get_exceptions
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -166,12 +166,7 @@ def view_institution(code):
 
     institution = Institution.query.get_or_404(code)  # Get institution from database
     updated = Institution.get_last_update(institution)  # Get last updated datetime for nstitution
-    statuses = Institution.get_statuses(institution)  # Get statuses for institution class
-    request_exceptions = []  # Create empty list for request exceptions
-
-    for status in statuses:  # Loop through statuses
-        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
-        request_exceptions.append(exceptions)  # Add exceptions to list
+    request_exceptions = get_exceptions(session, institution)  # get the user's exceptions for the institution
 
     # Render institution page
     return render_template('institution.html', institution=institution, updated=updated, exceptions=request_exceptions)
@@ -256,16 +251,16 @@ def view_users():
 @auth_required
 def edit_settings():
     # get the user from the database
-    user = db.session.execute(db.select(User).filter(User.username == session['username'])).scalar_one_or_none()
-    days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars()  # get the user's days
-    statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars()  # user statuses
+    user = get_user(session['username'])  # get the user from the database
+    days = User.get_user_days(user)  # get the user's days
+    user_statuses = User.get_user_statuses(user)  # user statuses
     userdays = []  # create an empty list for the user's days
     userstatuses = []  # create an empty list for the user's statuses
 
     for day in days:  # for each existing user day
         userdays.append(day.day)  # add the day to the list
 
-    for status in statuses:  # for each existing user status
+    for status in user_statuses:  # for each existing user status
         userstatuses.append(status.status)
 
     form = UserSettingsForm()  # load the form

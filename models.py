@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import aliased
 from settings import admins, allreports, site_url, saml_sp, cookie_issuing_file
 from datetime import datetime
+from statusmap import statuses
 
 db = SQLAlchemy()  # Create a database object
 
@@ -45,7 +46,7 @@ class Institution(db.Model):
 
     # Get all current RequestExceptions statuses for the institution
     def get_statuses(self):
-        statuses = db.session.execute(
+        reqstatuses = db.session.execute(
             db.select(
                 RequestException.borreqstat
             ).filter(
@@ -56,7 +57,7 @@ class Institution(db.Model):
                 RequestException.borreqstat
             )
         ).mappings().all()
-        return statuses
+        return reqstatuses
 
     # Get all current RequestExceptions for the institution by status
     def get_exceptions_by_status(self, status):
@@ -298,6 +299,14 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
+    def get_user_days(self):
+        user_days = db.session.execute(db.select(UserDay).filter(UserDay.user == self.id)).scalars().all()
+        return user_days
+
+    def get_user_statuses(self):
+        user_statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == self.id)).scalars().all()
+        return user_statuses
+
 
 # User Day class
 class UserDay(db.Model):
@@ -530,6 +539,12 @@ def add_user(session, admincheck, allreportscheck):
     db.session.commit()  # Commit the changes
 
 
+# Get the user from the database
+def get_user(username):
+    user = db.session.execute(db.select(User).filter(User.username == username)).scalar_one_or_none()
+    return user
+
+
 # Get all last updated times for institutions
 def get_all_last_updates():
     updates = db.session.execute(
@@ -559,7 +574,7 @@ def update_user_settings(form, user):
             db.session.add(user_day)  # add the user day to the database
 
     db.session.execute(db.delete(StatusUser).where(StatusUser.user == user.id))  # delete all the user's statuses
-    statuses = [
+    reqstatuses = [
         ('AUTOMATIC_RENEW', form.data['AUTOMATIC_RENEW']),
         ('AUTO_WILL_SUPPLY', form.data['AUTO_WILL_SUPPLY']),
         ('BAD_CITATION', form.data['BAD_CITATION']),
@@ -601,9 +616,46 @@ def update_user_settings(form, user):
         ('RECEIVE_DIGITALLY_REPLY', form.data['RECEIVE_DIGITALLY_REPLY']),
         ('WILL_SUPPLY', form.data['WILL_SUPPLY']),
     ]
-    for status in statuses:  # for each status
+    for status in reqstatuses:  # for each status
         if status[1] is True:
             status_user = StatusUser(status=status[0], user=user.id)  # create a new status user
             db.session.add(status_user)  # add the status user to the database
 
     db.session.commit()  # commit changes to the database
+
+
+def get_exceptions(session, institution):
+    user = get_user(session['username'])  # get the current user from the database
+    institution_statuses = Institution.get_statuses(institution)  # get the institution's current exception statuses
+    user_statuses = User.get_user_statuses(user)  # get the user's selected statuses
+
+    # if the user has NOT selected any statuses...
+    if len(user_statuses) == 0:
+        repstatuses = institution_statuses  # ...use all of the institution's current statuses
+
+    # if the user HAS selected statuses...
+    else:
+        # ...get a list of the user's SELECTED status CODES
+        userstatuses = []  # create an empty list for the user's selected status codes
+        for user_status in user_statuses:  # for each selected status
+            userstatuses.append(user_status.status)  # add the status code to the list
+
+        # ...then iterate through the status map to get the user's SELECTED status LABELS
+        statuslabels = []  # create an empty list for the statuses to be reported
+        for status in statuses:  # for each possible status
+            if status['code'] in userstatuses:  # if the status code is in the user's selected statuses
+                statuslabels.append(status['label'])  # add the status label to the list
+
+        # ...then iterate through the INSTITUTION'S CURRENT exception statuses looking for the user's SELECTED statuses
+        repstatuses = []
+        for institution_status in institution_statuses:
+            if institution_status.borreqstat in statuslabels:
+                repstatuses.append(institution_status)
+
+    request_exceptions = []  # Create empty list for request exceptions
+
+    for status in repstatuses:  # Loop through the user's SELECTED statuses that are CURRENT for the institution
+        exceptions = Institution.get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
+        request_exceptions.append(exceptions)  # Add exceptions to list
+
+    return request_exceptions  # Return list of exceptions
