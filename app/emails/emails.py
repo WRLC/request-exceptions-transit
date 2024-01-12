@@ -1,27 +1,15 @@
-from logging.handlers import TimedRotatingFileHandler
-from settings import log_dir
-from models import db, UserDay, User, Institution
-import logging
+from flask import current_app
 import datetime
 import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
-import settings
-
-# scheduler log
-logdir = log_dir  # set the log directory
-log_file = logdir + '/email.log'  # set the log file
-email_log = logging.getLogger('email')  # create the scheduler log
-email_log.setLevel(logging.INFO)  # set the scheduler log level
-file_handler = TimedRotatingFileHandler(log_file, when='midnight')  # create a file handler
-file_handler.setLevel(logging.INFO)  # set the file handler level
-file_handler.setFormatter(  # set the file handler format
-    logging.Formatter(
-        '%(asctime)s %(levelname)-8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S'
-    ))
-email_log.addHandler(file_handler)  # add the file handler to the scheduler log
+from app.extensions import db
+from app.utils import utils
+from app.models.user import User
+from app.models.institution import Institution
+from app.models.userday import UserDay
 
 
 def send_emails():
@@ -39,7 +27,7 @@ def send_emails():
             institutions.append(user.instcode)  # Add institution to list of institutions
 
     if len(users) == 0:  # If there are no users for today
-        email_log.info('No emails for today')
+        current_app.logger.info('No emails for today')
         return 'No emails for today'
 
     # Iterate through list of institutions
@@ -54,17 +42,17 @@ def send_emails():
 
         # Generate report for each institution
         inst = Institution.query.filter_by(code=institution).first()  # get the institution
-        reqs = Institution.get_all_requests(inst)  # get all requests for the institution
+        reqs = utils.get_all_requests(inst)  # get all requests for the institution
 
         if len(reqs) == 0:  # If there are no requests for the institution,
-            email_log.info('No requests for {}'.format(institution))  # log info
+            current_app.logger.info('No requests for {}'.format(institution))  # log info
             continue  # skip to the next institution
 
         df = pd.DataFrame.from_dict(reqs)  # create a dataframe from the requests
         df.to_excel('/tmp/{}.xlsx'.format(institution), index=False, header=True)  # write dataframe to excel file
 
         # Create email
-        sender_email = settings.sender_email  # sender email address
+        sender_email = current_app.config['SENDER_EMAIL']  # sender email address
         message = MIMEMultipart("alternative")  # create message
         message["Subject"] = '%s Request Status Exceptions report' % institution.upper()  # set subject
         message["From"] = sender_email  # set sender
@@ -102,10 +90,10 @@ def send_emails():
             message["To"] = inst_user  # set recipient
 
             try:  # try to send email
-                smtp = smtplib.SMTP(settings.smtp_address)  # create smtp server
+                smtp = smtplib.SMTP(current_app.config['SMTP_ADDRESS'])  # create smtp server
                 smtp.sendmail(sender_email, inst_user, message.as_string())  # send email
                 smtp.quit()  # quit smtp server
             except Exception as e:  # catch exception
-                email_log.error('Error sending email to {}: {}'.format(inst_user, str(e)))  # log error
+                current_app.logger.error('Error sending email to {}: {}'.format(inst_user, str(e)))  # log error
             else:  # if no exception
-                email_log.info('Email sent to %s' % inst_user)  # log info
+                current_app.logger.info('Email sent to %s' % inst_user)  # log info

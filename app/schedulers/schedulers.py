@@ -1,29 +1,34 @@
-import requests
-from models import db, get_all_institutions, RequestException, ExternalRequestInTransit, TransitStart, InstUpdate
+from flask import current_app
+from app.extensions import scheduler, db
+from app.utils import utils
+from app.emails.emails import send_emails
+from app.models.externalrequestintransit import ExternalRequestInTransit
+from app.models.transitstart import TransitStart
+from app.models.requestexception import RequestException
+from app.models.instupdate import InstUpdate
 from datetime import datetime
 from bs4 import BeautifulSoup
-from logging.handlers import TimedRotatingFileHandler
-from settings import log_dir
-import logging
+import requests
 
-# scheduler log
-logdir = log_dir  # set the log directory
-log_file = logdir + '/scheduler.log'  # set the log file
-scheduler_log = logging.getLogger('scheduler')  # create the scheduler log
-scheduler_log.setLevel(logging.INFO)  # set the scheduler log level
-file_handler = TimedRotatingFileHandler(log_file, when='midnight')  # create a file handler
-file_handler.setLevel(logging.INFO)  # set the file handler level
-file_handler.setFormatter(  # set the file handler format
-    logging.Formatter(
-        '%(asctime)s %(levelname)-8s %(message)s', datefmt='%m/%d/%Y %H:%M:%S'
-    ))
-scheduler_log.addHandler(file_handler)  # add the file handler to the scheduler log
+
+# Background task to update the reports
+@scheduler.task('cron', id='update_reports', minute=50, max_instances=1)  # run at 50 minutes past the hour
+def scheduler_update_reports():
+    with scheduler.app.app_context():  # need to be in app context to access the database
+        update_reports()  # update the reports
+
+
+# Background task to send emails
+@scheduler.task('cron', id='send_emails', hour=6, max_instances=1)  # run at 6am
+def scheduler_send_emails():
+    with scheduler.app.app_context():
+        send_emails()  # send the emails
 
 
 def update_reports():
     existing_ext = None  # Initialize variables
     existing_transit = None  # Initialize variables
-    institutions = get_all_institutions()  # Get all institutions
+    institutions = utils.get_all_institutions()  # Get all institutions
 
     for institution in institutions:  # loop through institutions
         updated = 0  # Set updated to 0
@@ -59,13 +64,13 @@ def update_reports():
                         try:
                             db.session.add(exception)  # Add the exception to the database
                         except Exception as e:
-                            scheduler_log.error(  # Log the error
+                            current_app.logger.error(  # Log the error
                                 'Exception for {} not added to database: {}'.format(institution.code, e))
                         else:
                             db.session.commit()  # Commit the exception to the database
                             new_exception_count += 1  # Increment new exception count
                     if new_exception_count > 0:  # Check if there were any new exceptions
-                        scheduler_log.debug(  # Log the number of new exceptions added
+                        current_app.logger.debug(  # Log the number of new exceptions added
                             '{} exceptions added for {}'.format(new_exception_count, institution.code))
                     updated += 1  # Increment updated
 
@@ -76,7 +81,7 @@ def update_reports():
                     existing_ext = db.session.execute(db.select(ExternalRequestInTransit)
                                                       .filter_by(instcode=institution.code)).scalars()
                 except Exception as e:
-                    scheduler_log.error(  # Log the error
+                    current_app.logger.error(  # Log the error
                         'Existing external requests in transit for {} not retrieved: {}'.format(institution.code, e))
 
                 updated_ext = api_call('ext_requests_in_transit', institution)  # Get updated data for the institution
@@ -109,7 +114,7 @@ def update_reports():
                                 db.select(ExternalRequestInTransit.request_id)
                                 .filter_by(request_id=ext_req.request_id)).scalar_one_or_none()
                         except Exception as e:
-                            scheduler_log.error(  # Log the error
+                            current_app.logger.error(  # Log the error
                                 'External request in transit {} for {} not retrieved: {}'.format(
                                     ext_req.request_id, institution.code, e))
 
@@ -117,7 +122,7 @@ def update_reports():
                             try:
                                 db.session.merge(ext_req)  # Update the external request in transit in the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'External request in transit {} for {} not updated: {}'.format(
                                         ext_test.request_id, institution.code, e))
                             else:
@@ -127,7 +132,7 @@ def update_reports():
                             try:
                                 db.session.add(ext_req)  # Add the external request in transit to the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'External request in transit {} for {} not added: {}'.format(
                                         ext_req.request_id, institution.code, e))
                             else:
@@ -140,20 +145,20 @@ def update_reports():
                             try:
                                 db.session.delete(request)  # Delete the external request in transit from the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'External request in transit {} for {} not deleted: {}'.format(
                                         request.request_id, institution.code, e))
                             else:
                                 db.session.commit()
                                 deleted_ext_count += 1  # Increment deleted count
                     if merged_ext_count > 0:
-                        scheduler_log.debug(  # Log the number of merged external requests in transit
+                        current_app.logger.debug(  # Log the number of merged external requests in transit
                             '{} external requests in transit merged for {}'.format(merged_ext_count, institution.code))
                     if new_ext_count > 0:
-                        scheduler_log.debug(  # Log the number of new external requests in transit
+                        current_app.logger.debug(  # Log the number of new external requests in transit
                             '{} external requests in transit added for {}'.format(new_ext_count, institution.code))
                     if deleted_ext_count > 0:
-                        scheduler_log.debug(  # Log the number of deleted external requests in transit
+                        current_app.logger.debug(  # Log the number of deleted external requests in transit
                             '{} external requests in transit deleted for {}'.format(
                                 deleted_ext_count, institution.code))
                     updated += 1  # Increment updated
@@ -165,7 +170,7 @@ def update_reports():
                     existing_transit = db.session.execute(db.select(TransitStart)
                                                           .filter_by(instcode=institution.code)).scalars()
                 except Exception as e:
-                    scheduler_log.error(  # Log the error
+                    current_app.logger.error(  # Log the error
                         'Existing transit start events for {} not retrieved: {}'.format(institution.code, e))
 
                 updated_transit = api_call('in_transit_data', institution)  # Get updated data for the institution
@@ -193,7 +198,7 @@ def update_reports():
                             try:
                                 db.session.merge(transit_event)  # Update the transit start in the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'Transit start event {} for {} not updated: {}'.format(
                                         transit_test.event_id, institution.code, e))
                             else:
@@ -203,7 +208,7 @@ def update_reports():
                             try:
                                 db.session.add(transit_event)  # Add the transit start to the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'Transit start event {} for {} not added: {}'.format(
                                         transit_event.event_id, institution.code, e))
                             else:
@@ -216,20 +221,20 @@ def update_reports():
                             try:
                                 db.session.delete(event)  # Delete the transit start from the database
                             except Exception as e:
-                                scheduler_log.error(  # Log the error
+                                current_app.logger.error(  # Log the error
                                     'Transit start event {} for {} not deleted: {}'.format(
                                         event.event_id, institution.code, e))
                             else:
                                 db.session.commit()
                                 deleted_transit_count += 1  # Increment deleted count
                     if merged_transit_count > 0:
-                        scheduler_log.debug(  # Log the number of merged transit starts
+                        current_app.logger.debug(  # Log the number of merged transit starts
                             '{} transit start events merged for {}'.format(merged_transit_count, institution.code))
                     if new_transit_count > 0:
-                        scheduler_log.debug(  # Log the number of new transit starts
+                        current_app.logger.debug(  # Log the number of new transit starts
                             '{} transit start events added for {}'.format(new_transit_count, institution.code))
                     if deleted_transit_count > 0:
-                        scheduler_log.debug(  # Log the number of deleted transit starts
+                        current_app.logger.debug(  # Log the number of deleted transit starts
                             '{} transit start events deleted for {}'.format(
                                 deleted_transit_count, institution.code))
                     updated += 1  # Increment updated
@@ -241,14 +246,14 @@ def update_reports():
                 try:
                     db.session.add(inst_update)  # add the institution update to the database
                 except Exception as e:
-                    scheduler_log.error(  # Log the error
+                    current_app.logger.error(  # Log the error
                         'Institution update for {} not added: {}'.format(institution.code, e))
                 else:
                     db.session.commit()
-                    scheduler_log.debug(  # Log the institution update
+                    current_app.logger.debug(  # Log the institution update
                         '{} updated'.format(institution.code))
 
-    scheduler_log.info('Scheduler run completed')  # Log the completion of the scheduler run
+    current_app.logger.info('Scheduler run completed')  # Log the completion of the scheduler run
 
 
 # Get the value of a column from a row
@@ -267,7 +272,7 @@ def delete_rows(obtype, instcode):
         try:
             db.session.delete(obj)
         except Exception as e:
-            scheduler_log.error(  # Log the error
+            current_app.logger.error(  # Log the error
                 '{} {} for {} not deleted: {}'.format(obtype, obj.exception_id, instcode, e))
             continue
         else:
@@ -283,7 +288,7 @@ def api_call(reptype, institution):
     try:
         response = requests.request('GET', path).content  # Make the API call
     except requests.exceptions.RequestException as e:
-        scheduler_log.log('ERROR', 'API call failed for ' + institution.code + ' ' + reptype + ' ' + str(e))
+        current_app.logger.log('ERROR', 'API call failed for ' + institution.code + ' ' + reptype + ' ' + str(e))
         return None
     soup = soupify(response)  # Turn the API response into a BeautifulSoup object
     return soup
