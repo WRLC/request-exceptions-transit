@@ -3,13 +3,20 @@
 {% block content %}
     <h2>
         {% block page_title %}
-            Edit Settings
+            Settings
         {% endblock %}
     </h2>
     <form method="post">
         {{ form.csrf_token }}
-        <div class="mb-3">
+        <div class="mb-1">
             <strong>Days to receive Request Status Exceptions report by email:</strong>
+        </div>
+        <div class="mb-3">
+            <ul>
+                <li><small class="text-muted">Email will be sent at 6am on each selected day.</small></li>
+                <li><small class="text-muted">Report will be attached to email in XLSX format.</small></li>
+                <li><small class="text-muted">Email will be sent to {{ user.emailaddress }}.</small></li>
+            </ul>
         </div>
         <div class="mb-1 form-check form-switch">
             {% if 0 in days %}
@@ -59,7 +66,7 @@
             {% endif %}
             {{ form.friday.label(class="form-label") }}
         </div>
-        <div class="mb-1 form-check form-switch">
+        <div class="mb-4 form-check form-switch">
             {% if 6 in days %}
                 {{ form.saturday(class="form-check-input", checked="checked") }}
             {% else %}
@@ -67,17 +74,10 @@
             {% endif %}
             {{ form.saturday.label(class="form-label") }}
         </div>
-        <div class="mb-4">
-            <ul>
-                <li><small class="text-muted">Email will be sent at 6am on each selected day.</small></li>
-                <li><small class="text-muted">Report will be attached to email in XLSX format.</small></li>
-                <li><small class="text-muted">Email will be sent to {{ user.emailaddress }}.</small></li>
-            </ul>
-        </div>
         <div class="mb-3">
             <strong>Active/Inactive Requests:</strong>
         </div>
-        <div class="mb-1 form-check form-switch">
+        <div class="mb-4 form-check form-switch">
             {% if active == 1 %}
                 {{ form.active(class="form-check-input", checked="checked") }}
             {% else %}
@@ -89,7 +89,9 @@
             <strong>Statuses to include in report:</strong>
         </div>
         <div class="mb-3">
-            <small class="text-muted">If no statuses selected, all statuses will be shown.</small>
+            <ul>
+                <li><small class="text-muted">If none are selected, all statuses will be displayed.</small></li>
+            </ul>
         </div>
         <div class="mb-1 form-check form-switch">
             {% if 'AUTOMATIC_RENEW' in statuses %}
