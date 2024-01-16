@@ -3,69 +3,13 @@
 {% block content %}
     <h2>
         {% block page_title %}
-            Edit Settings
+            Settings
         {% endblock %}
     </h2>
     <form method="post">
         {{ form.csrf_token }}
-        <div class="mb-3">
+        <div class="mb-1">
             <strong>Days to receive Request Status Exceptions report by email:</strong>
-        </div>
-        <div class="mb-3">
-            {% if 0 in days %}
-                {{ form.sunday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.sunday(class="form-check-input") }}
-            {% endif %}
-            {{ form.sunday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 1 in days %}
-                {{ form.monday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.monday(class="form-check-input") }}
-            {% endif %}
-            {{ form.monday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 2 in days %}
-                {{ form.tuesday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.tuesday(class="form-check-input") }}
-            {% endif %}
-            {{ form.tuesday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 3 in days %}
-                {{ form.wednesday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.wednesday(class="form-check-input") }}
-            {% endif %}
-            {{ form.wednesday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 4 in days %}
-                {{ form.thursday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.thursday(class="form-check-input") }}
-            {% endif %}
-            {{ form.thursday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 5 in days %}
-                {{ form.friday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.friday(class="form-check-input") }}
-            {% endif %}
-            {{ form.friday.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            {% if 6 in days %}
-                {{ form.saturday(class="form-check-input", checked="checked") }}
-            {% else %}
-                {{ form.saturday(class="form-check-input") }}
-            {% endif %}
-            {{ form.saturday.label(class="form-label") }}
         </div>
         <div class="mb-3">
             <ul>
@@ -74,10 +18,82 @@
                 <li><small class="text-muted">Email will be sent to {{ user.emailaddress }}.</small></li>
             </ul>
         </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 0 in days %}
+                {{ form.sunday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.sunday(class="form-check-input") }}
+            {% endif %}
+            {{ form.sunday.label(class="form-label") }}
+        </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 1 in days %}
+                {{ form.monday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.monday(class="form-check-input") }}
+            {% endif %}
+            {{ form.monday.label(class="form-label") }}
+        </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 2 in days %}
+                {{ form.tuesday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.tuesday(class="form-check-input") }}
+            {% endif %}
+            {{ form.tuesday.label(class="form-label") }}
+        </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 3 in days %}
+                {{ form.wednesday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.wednesday(class="form-check-input") }}
+            {% endif %}
+            {{ form.wednesday.label(class="form-label") }}
+        </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 4 in days %}
+                {{ form.thursday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.thursday(class="form-check-input") }}
+            {% endif %}
+            {{ form.thursday.label(class="form-label") }}
+        </div>
+        <div class="mb-1 form-check form-switch">
+            {% if 5 in days %}
+                {{ form.friday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.friday(class="form-check-input") }}
+            {% endif %}
+            {{ form.friday.label(class="form-label") }}
+        </div>
+        <div class="mb-4 form-check form-switch">
+            {% if 6 in days %}
+                {{ form.saturday(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.saturday(class="form-check-input") }}
+            {% endif %}
+            {{ form.saturday.label(class="form-label") }}
+        </div>
         <div class="mb-3">
+            <strong>Active/Inactive Requests:</strong>
+        </div>
+        <div class="mb-4 form-check form-switch">
+            {% if active == 1 %}
+                {{ form.active(class="form-check-input", checked="checked") }}
+            {% else %}
+                {{ form.active(class="form-check-input") }}
+            {% endif %}
+            {{ form.active.label(class="form-label") }}
+        </div>
+        <div class="mb-1">
             <strong>Statuses to include in report:</strong>
         </div>
         <div class="mb-3">
+            <ul>
+                <li><small class="text-muted">If none are selected, all statuses will be displayed.</small></li>
+            </ul>
+        </div>
+        <div class="mb-1 form-check form-switch">
             {% if 'AUTOMATIC_RENEW' in statuses %}
                 {{ form.AUTOMATIC_RENEW(class="form-check-input", checked="checked") }}
             {% else %}
@@ -85,7 +101,7 @@
             {% endif %}
             {{ form.AUTOMATIC_RENEW.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'AUTO_WILL_SUPPLY' in statuses %}
                 {{ form.AUTO_WILL_SUPPLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -93,7 +109,7 @@
             {% endif %}
             {{ form.AUTO_WILL_SUPPLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'BAD_CITATION' in statuses %}
                 {{ form.BAD_CITATION(class="form-check-input", checked="checked") }}
             {% else %}
@@ -101,7 +117,7 @@
             {% endif %}
             {{ form.BAD_CITATION.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'CANCEL_NOT_ACCEPTED' in statuses %}
                 {{ form.CANCEL_NOT_ACCEPTED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -109,7 +125,7 @@
             {% endif %}
             {{ form.CANCEL_NOT_ACCEPTED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'CANCELLED' in statuses %}
                 {{ form.CANCELLED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -117,7 +133,7 @@
             {% endif %}
             {{ form.CANCELLED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'CLAIMED' in statuses %}
                 {{ form.CLAIMED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -125,7 +141,7 @@
             {% endif %}
             {{ form.CLAIMED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'CONDITIONAL' in statuses %}
                 {{ form.CONDITIONAL(class="form-check-input", checked="checked") }}
             {% else %}
@@ -133,7 +149,7 @@
             {% endif %}
             {{ form.CONDITIONAL.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REQUEST_CREATED_BOR' in statuses %}
                 {{ form.REQUEST_CREATED_BOR(class="form-check-input", checked="checked") }}
             {% else %}
@@ -141,7 +157,7 @@
             {% endif %}
             {{ form.REQUEST_CREATED_BOR.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'DAMAGED_COMMUNICATED' in statuses %}
                 {{ form.DAMAGED_COMMUNICATED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -149,7 +165,7 @@
             {% endif %}
             {{ form.DAMAGED_COMMUNICATED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'DECLARED_LOST' in statuses %}
                 {{ form.DECLARED_LOST(class="form-check-input", checked="checked") }}
             {% else %}
@@ -157,7 +173,7 @@
             {% endif %}
             {{ form.DECLARED_LOST.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RECEIVED_DIGITALLY' in statuses %}
                 {{ form.RECEIVED_DIGITALLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -165,7 +181,7 @@
             {% endif %}
             {{ form.RECEIVED_DIGITALLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'EXPIRED' in statuses %}
                 {{ form.EXPIRED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -173,7 +189,7 @@
             {% endif %}
             {{ form.EXPIRED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'EXTERNALLY_OBTAINED' in statuses %}
                 {{ form.EXTERNALLY_OBTAINED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -181,7 +197,7 @@
             {% endif %}
             {{ form.EXTERNALLY_OBTAINED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LENDER_CHECK_IN' in statuses %}
                 {{ form.LENDER_CHECK_IN(class="form-check-input", checked="checked") }}
             {% else %}
@@ -189,7 +205,7 @@
             {% endif %}
             {{ form.LENDER_CHECK_IN.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LOCAL_HOLDING' in statuses %}
                 {{ form.LOCAL_HOLDING(class="form-check-input", checked="checked") }}
             {% else %}
@@ -197,7 +213,7 @@
             {% endif %}
             {{ form.LOCAL_HOLDING.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LOCATE_FAILED' in statuses %}
                 {{ form.LOCATE_FAILED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -205,7 +221,7 @@
             {% endif %}
             {{ form.LOCATE_FAILED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LOCATE_IN_PROCESS' in statuses %}
                 {{ form.LOCATE_IN_PROCESS(class="form-check-input", checked="checked") }}
             {% else %}
@@ -213,7 +229,7 @@
             {% endif %}
             {{ form.LOCATE_IN_PROCESS.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LOST_AND_FEE_PAID' in statuses %}
                 {{ form.LOST_AND_FEE_PAID(class="form-check-input", checked="checked") }}
             {% else %}
@@ -221,7 +237,7 @@
             {% endif %}
             {{ form.LOST_AND_FEE_PAID.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'LOST_COMMUNICATED' in statuses %}
                 {{ form.LOST_COMMUNICATED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -229,7 +245,7 @@
             {% endif %}
             {{ form.LOST_COMMUNICATED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'MANUAL_RENEW' in statuses %}
                 {{ form.MANUAL_RENEW(class="form-check-input", checked="checked") }}
             {% else %}
@@ -237,7 +253,7 @@
             {% endif %}
             {{ form.MANUAL_RENEW.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'MEDIATED_RENEWAL' in statuses %}
                 {{ form.MEDIATED_RENEWAL(class="form-check-input", checked="checked") }}
             {% else %}
@@ -245,7 +261,7 @@
             {% endif %}
             {{ form.MEDIATED_RENEWAL.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'OVERDUE_ITEM' in statuses %}
                 {{ form.OVERDUE_ITEM(class="form-check-input", checked="checked") }}
             {% else %}
@@ -253,7 +269,7 @@
             {% endif %}
             {{ form.OVERDUE_ITEM.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'PENDING_APPROVAL' in statuses %}
                 {{ form.PENDING_APPROVAL(class="form-check-input", checked="checked") }}
             {% else %}
@@ -261,7 +277,7 @@
             {% endif %}
             {{ form.PENDING_APPROVAL.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REACTIVATED' in statuses %}
                 {{ form.REACTIVATED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -269,7 +285,7 @@
             {% endif %}
             {{ form.REACTIVATED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'READY_TO_SEND' in statuses %}
                 {{ form.READY_TO_SEND(class="form-check-input", checked="checked") }}
             {% else %}
@@ -277,7 +293,7 @@
             {% endif %}
             {{ form.READY_TO_SEND.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RECALLED_BOR' in statuses %}
                 {{ form.RECALLED_BOR(class="form-check-input", checked="checked") }}
             {% else %}
@@ -285,7 +301,7 @@
             {% endif %}
             {{ form.RECALLED_BOR.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REJECT' in statuses %}
                 {{ form.REJECT(class="form-check-input", checked="checked") }}
             {% else %}
@@ -293,7 +309,7 @@
             {% endif %}
             {{ form.REJECT.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RENEW_NOT_ACCEPTED' in statuses %}
                 {{ form.RENEW_NOT_ACCEPTED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -301,7 +317,7 @@
             {% endif %}
             {{ form.RENEW_NOT_ACCEPTED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RENEW_REQUESTED' in statuses %}
                 {{ form.RENEW_REQUESTED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -309,7 +325,7 @@
             {% endif %}
             {{ form.RENEW_REQUESTED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RENEWED' in statuses %}
                 {{ form.RENEWED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -317,7 +333,7 @@
             {% endif %}
             {{ form.RENEWED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'DAMAGED' in statuses %}
                 {{ form.DAMAGED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -325,7 +341,7 @@
             {% endif %}
             {{ form.DAMAGED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REPORT_LOST' in statuses %}
                 {{ form.REPORT_LOST(class="form-check-input", checked="checked") }}
             {% else %}
@@ -333,7 +349,7 @@
             {% endif %}
             {{ form.REPORT_LOST.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REQUEST_ACCEPTED' in statuses %}
                 {{ form.REQUEST_ACCEPTED(class="form-check-input", checked="checked") }}
             {% else %}
@@ -341,7 +357,7 @@
             {% endif %}
             {{ form.REQUEST_ACCEPTED.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'REQUEST_SENT' in statuses %}
                 {{ form.REQUEST_SENT(class="form-check-input", checked="checked") }}
             {% else %}
@@ -349,7 +365,7 @@
             {% endif %}
             {{ form.REQUEST_SENT.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RETURNED_TO_PARTNER' in statuses %}
                 {{ form.RETURNED_TO_PARTNER(class="form-check-input", checked="checked") }}
             {% else %}
@@ -357,7 +373,7 @@
             {% endif %}
             {{ form.RETURNED_TO_PARTNER.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'SHIPPED_DIGITALLY' in statuses %}
                 {{ form.SHIPPED_DIGITALLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -365,7 +381,7 @@
             {% endif %}
             {{ form.SHIPPED_DIGITALLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'SHIPPED_PHYSICALLY' in statuses %}
                 {{ form.SHIPPED_PHYSICALLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -373,7 +389,7 @@
             {% endif %}
             {{ form.SHIPPED_PHYSICALLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'CANCEL_REPLY' in statuses %}
                 {{ form.CANCEL_REPLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -381,7 +397,7 @@
             {% endif %}
             {{ form.CANCEL_REPLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'RECEIVE_DIGITALLY_REPLY' in statuses %}
                 {{ form.RECEIVE_DIGITALLY_REPLY(class="form-check-input", checked="checked") }}
             {% else %}
@@ -389,20 +405,13 @@
             {% endif %}
             {{ form.RECEIVE_DIGITALLY_REPLY.label(class="form-label") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-1 form-check form-switch">
             {% if 'WILL_SUPPLY' in statuses %}
                 {{ form.WILL_SUPPLY(class="form-check-input", checked="checked") }}
             {% else %}
                 {{ form.WILL_SUPPLY(class="form-check-input") }}
             {% endif %}
             {{ form.WILL_SUPPLY.label(class="form-label") }}
-        </div>
-        <div class="mb-3">
-            <ul>
-                <li><small class="text-muted">If no statuses selected, all statuses will be shown.</small></li>
-                <li><small class="text-muted">Selected statuses will appear in both web and downloaded Excel reports.</small></li>
-                <li><small class="text-muted">All statuses will still be included in emailed Excel reports</small></li>
-            </ul>
         </div>
         <div class="actions mb-5">
             <input type="submit" value="Update Settings"  class="btn btn-primary" />

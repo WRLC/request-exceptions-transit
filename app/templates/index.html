@@ -3,7 +3,7 @@
 {% block content %}
     <h2>
         {% block page_title %}
-            Institutions
+            Reports
         {% endblock %}
     </h2>
     <table class="table table-bordered table-hover table-sm">
@@ -20,12 +20,12 @@
             {% for institution in institutions %}
                 {% if (institution.key != '') and (institution.exceptions != '') %}
                     <tr>
-                        <td><a href="{{ url_for('view_institution', code=institution.code) }}">{{ institution.name }}</a></td>
+                        <td><a href="{{ url_for('report.view_institution', code=institution.code) }}">{{ institution.name }}</a></td>
                         <td>{{ institution.code }}</td>
                         {% for upd in updates if upd[0] == institution.code %}
                             <td>{{ upd[1] }}</td>
                         {% endfor %}
-                        <td><a href="{{ url_for('edit_institution', code=institution.code) }}">Edit</a></td>
+                        <td><a href="{{ url_for('report.edit_institution', code=institution.code) }}">Edit</a></td>
                     </tr>
                 {% else %}
                     {{ slots.append(institution)  or '' }}
@@ -47,7 +47,7 @@
                     <tr>
                         <td>{{ slot.name }}</td>
                         <td>{{ slot.code }}</td>
-                        <td><a href="{{ url_for('edit_institution', code=slot.code) }}">Edit</a></td>
+                        <td><a href="{{ url_for('report.edit_institution', code=slot.code) }}">Edit</a></td>
                     </tr>
             {% endfor %}
         </tbody>

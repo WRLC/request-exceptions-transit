@@ -37,7 +37,9 @@ pyexcel-io==0.6.6
 pyexcel-webio==0.1.4
 PyJWT==2.7.0
 PyMySQL==1.0.3
+pyOpenSSL==23.3.0
 python-dateutil==2.8.2
+python-dotenv==1.0.0
 pytz==2023.3
 pyxlsb==1.0.10
 requests==2.31.0

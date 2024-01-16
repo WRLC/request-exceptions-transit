@@ -43,7 +43,7 @@
                     <td>{{ institution.in_transit_data }}</td>
                 </tr>
             </table>
-            <a class="btn btn-primary" href="{{ url_for('edit_institution', code=institution.code) }}">Edit Institution</a>
+            <a class="btn btn-primary" href="{{ url_for('report.edit_institution', code=institution.code) }}">Edit Institution</a>
         </details>
     {% endif %}
     <div class="row mb-2">
@@ -51,7 +51,7 @@
             <span class="text-muted">Last Updated: {{ updated[0].last_update if updated }}</span>
         </div>
         <div class="col text-end">
-            <a href="{{ url_for('report_download', code=institution.code) }}" class="btn btn-success">Download XLSX</a>
+            <a href="{{ url_for('report.report_download', code=institution.code) }}" class="btn btn-success">Download XLSX</a>
         </div>
     </div>
 
@@ -59,6 +59,7 @@
         <p>No exceptions found.</p>
     {% endif %}
     {% for reqs in exceptions %}
+        {% if reqs is defined and reqs|length > 0 %}
         <details class="collapsible-report">
             <summary>
                 {% set slots = [] %}
@@ -125,6 +126,7 @@
                 </tbody>
             </table>
         </details>
+        {% endif %}
     {% endfor %}
         <script>
         window.onload = function() {
