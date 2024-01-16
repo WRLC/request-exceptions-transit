@@ -132,8 +132,9 @@ def report_download(code):
         # abort with a 403 error
         abort(403)
 
+    user = utils.get_user(session['username'])  # get the user from the database
     inst = Institution.query.get_or_404(code)  # get the institution
-    reqs = utils.get_all_requests(inst)  # get all requests for the institution
+    reqs = utils.get_exceptions_xlsx(user, inst)  # get all requests for the institution
 
     buffer = io.BytesIO()
 
@@ -224,4 +225,5 @@ def edit_settings():
         return redirect(url_for('report.edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays, active=useractive, statuses=userstatuses, user=user)
+    return render_template('settings.html', form=form, days=userdays, active=useractive,
+                           statuses=userstatuses, user=user)

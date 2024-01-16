@@ -17,10 +17,11 @@ def get_all_institutions():
     return institutions
 
 
-# Get all current RequestExceptions for all institutions
-def get_all_requests(institution):
+# Get all current RequestExceptions for an institution
+def get_all_requests(institution, repstatuses):
     ib = aliased(Institution)
     il = aliased(Institution)
+    # TODO: filter by repstatuses
     requests = db.session.execute(
         db.select(
             RequestException.borreqstat.label('Borrowing Request Status'),
@@ -49,6 +50,8 @@ def get_all_requests(institution):
             TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
         ).filter(
             RequestException.instcode == institution.code,
+        ).filter(
+            RequestException.borreqstat.in_([status.borreqstat for status in repstatuses])
         ).order_by(
             RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
             RequestException.reqsend.desc()
@@ -134,6 +137,25 @@ def get_all_last_updates():
     return updates
 
 
+# Get the request exceptions for an institutions (for XLSX)
+def get_exceptions_xlsx(user, institution):
+    user = get_user(user.username)  # get the current user from the database
+    institution_statuses = get_statuses(institution.code)  # get inst's current exception statuses
+    user_statuses = get_user_statuses(user)  # get the user's selected statuses
+
+    # if the user has NOT selected any statuses...
+    if len(user_statuses) == 0:
+        repstatuses = institution_statuses
+
+    # if the user HAS selected statuses...
+    else:
+        repstatuses = get_user_selected_statuses(user_statuses, institution_statuses)
+
+    request_exceptions = get_all_requests(institution, repstatuses)  # get all exceptions for the institution
+
+    return request_exceptions  # Return list of exceptions
+
+
 # Get the request exceptions for an institution
 def get_exceptions(session, institution):
 
@@ -147,7 +169,7 @@ def get_exceptions(session, institution):
 
     # if the user HAS selected statuses...
     else:
-        repstatuses = get_user_active_statuses(user_statuses, institution_statuses)
+        repstatuses = get_user_selected_statuses(user_statuses, institution_statuses)
 
     request_exceptions = []  # Create empty list for request exceptions
 
@@ -195,7 +217,7 @@ def get_user(username):
     return user
 
 
-def get_user_active_statuses(user_statuses, institution_statuses):
+def get_user_selected_statuses(user_statuses, institution_statuses):
     # ...get a list of the user's SELECTED status CODES
     userstatuses = []  # create an empty list for the user's selected status codes
     for user_status in user_statuses:  # for each selected status
