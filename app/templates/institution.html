@@ -59,6 +59,7 @@
         <p>No exceptions found.</p>
     {% endif %}
     {% for reqs in exceptions %}
+        {% if reqs is defined and reqs|length > 0 %}
         <details class="collapsible-report">
             <summary>
                 {% set slots = [] %}
@@ -125,6 +126,7 @@
                 </tbody>
             </table>
         </details>
+        {% endif %}
     {% endfor %}
         <script>
         window.onload = function() {

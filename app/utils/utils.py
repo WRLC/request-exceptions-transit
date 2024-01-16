@@ -18,10 +18,9 @@ def get_all_institutions():
 
 
 # Get all current RequestExceptions for an institution
-def get_all_requests(institution, repstatuses):
+def get_all_requests(institution, repstatuses, partnerstat):
     ib = aliased(Institution)
     il = aliased(Institution)
-    # TODO: filter by repstatuses
     requests = db.session.execute(
         db.select(
             RequestException.borreqstat.label('Borrowing Request Status'),
@@ -50,8 +49,8 @@ def get_all_requests(institution, repstatuses):
             TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
         ).filter(
             RequestException.instcode == institution.code,
-        ).filter(
-            RequestException.borreqstat.in_([status.borreqstat for status in repstatuses])
+            RequestException.borreqstat.in_([status.borreqstat for status in repstatuses]),
+            RequestException.partnerstat.in_(partnerstat)
         ).order_by(
             RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
             RequestException.reqsend.desc()
@@ -79,7 +78,7 @@ def get_all_requests(institution, repstatuses):
 
 
 # Get all current RequestExceptions for the institution by status
-def get_exceptions_by_status(institution, status):
+def get_exceptions_by_status(institution, status, partnerstat):
     ib = aliased(Institution)
     il = aliased(Institution)
     requests = db.session.execute(
@@ -101,7 +100,8 @@ def get_exceptions_by_status(institution, status):
             TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
         ).filter(
             RequestException.instcode == institution.code,
-            RequestException.borreqstat == status
+            RequestException.borreqstat == status,
+            RequestException.partnerstat.in_(partnerstat)
         ).order_by(
             RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
             RequestException.reqsend.desc()
@@ -151,7 +151,13 @@ def get_exceptions_xlsx(user, institution):
     else:
         repstatuses = get_user_selected_statuses(user_statuses, institution_statuses)
 
-    request_exceptions = get_all_requests(institution, repstatuses)  # get all exceptions for the institution
+    user_partnerstat = get_user_active(user)  # get the user's selected partner status
+    partnerstat = get_all_partnerstat()  # get all possible partner statuses
+    if user_partnerstat is not None:  # if the user has selected a partner status
+        if user_partnerstat.active == 1:  # if the user has selected 'Active Only'
+            partnerstat = ['Active']  # set the partner status to 'Active'
+
+    request_exceptions = get_all_requests(institution, repstatuses, partnerstat)  # Get all exceptions
 
     return request_exceptions  # Return list of exceptions
 
@@ -171,10 +177,16 @@ def get_exceptions(session, institution):
     else:
         repstatuses = get_user_selected_statuses(user_statuses, institution_statuses)
 
+    user_partnerstat = get_user_active(user)  # get the user's selected partner status
+    partnerstat = get_all_partnerstat()  # get all possible partner statuses
+    if user_partnerstat is not None:  # if the user has selected a partner status
+        if user_partnerstat.active == 1:  # if the user has selected 'Active Only'
+            partnerstat = ['Active']  # set the partner status to 'Active'
+
     request_exceptions = []  # Create empty list for request exceptions
 
     for status in repstatuses:  # Loop through the user's SELECTED statuses that are CURRENT for the institution
-        exceptions = get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
+        exceptions = get_exceptions_by_status(institution, status.borreqstat, partnerstat)  # Get exceptions
         request_exceptions.append(exceptions)  # Add exceptions to list
 
     return request_exceptions  # Return list of exceptions
@@ -284,3 +296,8 @@ def get_all_statuses():
         {'code': 'WILL_SUPPLY', 'label': 'Will supply'}
     ]
     return statuses
+
+
+def get_all_partnerstat():
+    partnerstat = ['Active', 'Non Active']
+    return partnerstat
