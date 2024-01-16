@@ -4,6 +4,7 @@ from wtforms.widgets import CheckboxInput
 from app.extensions import db
 from app.models.userday import UserDay
 from app.models.statususer import StatusUser
+from app.models.useractive import UserActive
 
 
 # User Settings form class
@@ -15,6 +16,7 @@ class UserSettingsForm(FlaskForm):
     thursday = BooleanField('Thursday', widget=CheckboxInput())
     friday = BooleanField('Friday', widget=CheckboxInput())
     saturday = BooleanField('Saturday', widget=CheckboxInput())
+    active = BooleanField('Show only Active requests', widget=CheckboxInput())
     AUTOMATIC_RENEW = BooleanField('Automatic renew', widget=CheckboxInput())
     AUTO_WILL_SUPPLY = BooleanField('Automatic will supply', widget=CheckboxInput())
     BAD_CITATION = BooleanField('Bad citation', widget=CheckboxInput())
@@ -73,6 +75,11 @@ class UserSettingsForm(FlaskForm):
             if day[1] is True:
                 user_day = UserDay(user=user.id, day=day[0])  # create a new user day
                 db.session.add(user_day)  # add the user day to the database
+
+        db.session.execute(db.delete(UserActive).where(UserActive.user == user.id))  # delete the user's active pref
+        if form.data['active'] is True:
+            user_active = UserActive(user=user.id, active=True)
+            db.session.add(user_active)  # add the user active to the database
 
         db.session.execute(db.delete(StatusUser).where(StatusUser.user == user.id))  # delete all the user's statuses
         reqstatuses = [

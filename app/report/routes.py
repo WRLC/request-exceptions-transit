@@ -201,11 +201,16 @@ def edit_settings():
     user = utils.get_user(session['username'])  # get the user from the database
     days = utils.get_user_days(user)  # get the user's days
     user_statuses = utils.get_user_statuses(user)  # user statuses
+    user_active = utils.get_user_active(user)  # user active status
     userdays = []  # create an empty list for the user's days
+    useractive = 0  # create an empty variable for the user's active status
     userstatuses = []  # create an empty list for the user's statuses
 
     for day in days:  # for each existing user day
         userdays.append(day.day)  # add the day to the list
+
+    if user_active:  # if the user has an active status
+        useractive = user_active.active
 
     for status in user_statuses:  # for each existing user status
         userstatuses.append(status.status)
@@ -219,4 +224,4 @@ def edit_settings():
         return redirect(url_for('report.edit_settings'))
 
     # render the settings page
-    return render_template('settings.html', form=form, days=userdays, statuses=userstatuses, user=user)
+    return render_template('settings.html', form=form, days=userdays, active=useractive, statuses=userstatuses, user=user)

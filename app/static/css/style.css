@@ -32,3 +32,8 @@
 .form-control#day {
     list-style: none;
 }
+
+.form-switch.col-auto .form-check-input {
+    margin-left: -2em;
+    margin-right: 0.5em;
+}

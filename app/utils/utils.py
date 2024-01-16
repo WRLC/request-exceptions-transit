@@ -4,6 +4,7 @@ from app.models.requestexception import RequestException
 from app.models.externalrequestintransit import ExternalRequestInTransit
 from app.models.transitstart import TransitStart
 from app.models.userday import UserDay
+from app.models.useractive import UserActive
 from app.models.statususer import StatusUser
 from app.models.user import User
 from sqlalchemy.orm import aliased
@@ -48,66 +49,6 @@ def get_all_requests(institution):
             TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
         ).filter(
             RequestException.instcode == institution.code,
-        ).order_by(
-            RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
-            RequestException.reqsend.desc()
-        )
-    ).mappings().all()
-
-    requests_dict = [dict(row) for row in requests]
-
-    columns = ['Borrowing Request Status', 'Internal ID', 'Borrowing Request Date', 'Title', 'Author',
-               'Network Number',
-               'Requestor', 'Partner Active Status', 'Request Sending Date', 'Days Since Request', 'Partner Name',
-               'Partner Code', 'In Transit?', 'In Transit Start']
-
-    parsed_requests = []  # List to hold parsed requests
-
-    for request in requests_dict:  # Parse requests
-        if request['In Transit?'] is None:  # If the request is not in transit
-            request['In Transit?'] = 'N'  # Set the value to 'N'
-        else:  # If the request is in transit
-            request['In Transit?'] = 'Y'  # Set the value to 'Y'
-        ordered_request = {k: request[k] for k in columns}  # Create a dictionary of the request
-        parsed_requests.append(ordered_request)  # Add the parsed request to the list
-
-    return parsed_requests  # Return the list of parsed requests
-
-
-# Get all current RequestExceptions for all institutions filtered by status
-def get_all_requests_filtered(institution, userstatuses):
-    ib = aliased(Institution)
-    il = aliased(Institution)
-    requests = db.session.execute(
-        db.select(
-            RequestException.borreqstat.label('Borrowing Request Status'),
-            RequestException.internalid.label('Internal ID'),
-            RequestException.borcreate.label('Borrowing Request Date'),
-            RequestException.title.label('Title'),
-            RequestException.author.label('Author'),
-            RequestException.networknum.label('Network Number'),
-            RequestException.partnerstat.label('Partner Active Status'),
-            RequestException.reqsend.label('Request Sending Date'),
-            RequestException.days.label('Days Since Request'),
-            RequestException.requestor.label('Requestor'),
-            RequestException.partnername.label('Partner Name'),
-            RequestException.partnercode.label('Partner Code'),
-            ExternalRequestInTransit.request_id.label('In Transit?'),
-            TransitStart.transit_date.label('In Transit Start')
-        ).join(
-            ib, RequestException.instcode == ib.code
-        ).outerjoin(
-            il, RequestException.partnercode == il.partner_code
-        ).outerjoin(
-            ExternalRequestInTransit, (ExternalRequestInTransit.title == RequestException.title) &
-                                      (ExternalRequestInTransit.external_id == ib.fulfillment_code) &
-                                      (ExternalRequestInTransit.instcode == il.code)
-        ).outerjoin(
-            TransitStart, ExternalRequestInTransit.request_id == TransitStart.request_id
-        ).filter(
-            RequestException.instcode == institution.code,
-        ).filter(
-            RequestException.borreqstat.any(userstatuses)
         ).order_by(
             RequestException.borreqstat, RequestException.internalid.desc(), RequestException.borcreate.desc(),
             RequestException.reqsend.desc()
@@ -195,6 +136,89 @@ def get_all_last_updates():
 
 # Get the request exceptions for an institution
 def get_exceptions(session, institution):
+
+    user = get_user(session['username'])  # get the current user from the database
+    institution_statuses = get_statuses(institution.code)  # get inst's current exception statuses
+    user_statuses = get_user_statuses(user)  # get the user's selected statuses
+
+    # if the user has NOT selected any statuses...
+    if len(user_statuses) == 0:
+        repstatuses = institution_statuses  # ...use all of the institution's current statuses
+
+    # if the user HAS selected statuses...
+    else:
+        repstatuses = get_user_active_statuses(user_statuses, institution_statuses)
+
+    request_exceptions = []  # Create empty list for request exceptions
+
+    for status in repstatuses:  # Loop through the user's SELECTED statuses that are CURRENT for the institution
+        exceptions = get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
+        request_exceptions.append(exceptions)  # Add exceptions to list
+
+    return request_exceptions  # Return list of exceptions
+
+
+# Get all current RequestExceptions statuses for the institution
+def get_statuses(instcode):
+    reqstatuses = db.session.execute(
+        db.select(
+            RequestException.borreqstat
+        ).filter(
+            RequestException.instcode == instcode
+        ).group_by(
+            RequestException.borreqstat
+        ).order_by(
+            RequestException.borreqstat
+        )
+    ).mappings().all()
+    return reqstatuses
+
+
+def get_user_days(user):
+    user_days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars().all()
+    return user_days
+
+
+def get_user_active(user):
+    user_active = db.session.execute(db.select(UserActive).filter(UserActive.user == user.id)).scalar_one_or_none()
+    return user_active
+
+
+def get_user_statuses(user):
+    user_statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars().all()
+    return user_statuses
+
+
+# Get the user from the database
+def get_user(username):
+    user = db.session.execute(db.select(User).filter(User.username == username)).scalar_one_or_none()
+    return user
+
+
+def get_user_active_statuses(user_statuses, institution_statuses):
+    # ...get a list of the user's SELECTED status CODES
+    userstatuses = []  # create an empty list for the user's selected status codes
+    for user_status in user_statuses:  # for each selected status
+        userstatuses.append(user_status.status)  # add the status code to the list
+
+    # ...then iterate through the status map to get the user's SELECTED status LABELS
+    statuslabels = []  # create an empty list for the statuses to be reported
+
+    statuses = get_all_statuses()  # get all possible statuses
+    for status in statuses:  # for each possible status
+        if status['code'] in userstatuses:  # if the status code is in the user's selected statuses
+            statuslabels.append(status['label'])  # add the status label to the list
+
+    # ...then iterate through INSTITUTION'S CURRENT exception statuses looking for the user's SELECTED statuses
+    repstatuses = []
+    for institution_status in institution_statuses:
+        if institution_status.borreqstat in statuslabels:
+            repstatuses.append(institution_status)
+
+    return repstatuses
+
+
+def get_all_statuses():
     statuses = [
         {'code': 'AUTOMATIC_RENEW', 'label': 'Automatic renew'},
         {'code': 'AUTO_WILL_SUPPLY', 'label': 'Automatic will supply'},
@@ -237,69 +261,4 @@ def get_exceptions(session, institution):
         {'code': 'RECEIVE_DIGITALLY_REPLY', 'label': 'Waiting for receive digitally'},
         {'code': 'WILL_SUPPLY', 'label': 'Will supply'}
     ]
-    user = get_user(session['username'])  # get the current user from the database
-    institution_statuses = get_statuses(institution.code)  # get inst's current exception statuses
-    user_statuses = get_user_statuses(user)  # get the user's selected statuses
-
-    # if the user has NOT selected any statuses...
-    if len(user_statuses) == 0:
-        repstatuses = institution_statuses  # ...use all of the institution's current statuses
-
-    # if the user HAS selected statuses...
-    else:
-        # ...get a list of the user's SELECTED status CODES
-        userstatuses = []  # create an empty list for the user's selected status codes
-        for user_status in user_statuses:  # for each selected status
-            userstatuses.append(user_status.status)  # add the status code to the list
-
-        # ...then iterate through the status map to get the user's SELECTED status LABELS
-        statuslabels = []  # create an empty list for the statuses to be reported
-        for status in statuses:  # for each possible status
-            if status['code'] in userstatuses:  # if the status code is in the user's selected statuses
-                statuslabels.append(status['label'])  # add the status label to the list
-
-        # ...then iterate through INSTITUTION'S CURRENT exception statuses looking for the user's SELECTED statuses
-        repstatuses = []
-        for institution_status in institution_statuses:
-            if institution_status.borreqstat in statuslabels:
-                repstatuses.append(institution_status)
-
-    request_exceptions = []  # Create empty list for request exceptions
-
-    for status in repstatuses:  # Loop through the user's SELECTED statuses that are CURRENT for the institution
-        exceptions = get_exceptions_by_status(institution, status.borreqstat)  # Get all exceptions
-        request_exceptions.append(exceptions)  # Add exceptions to list
-
-    return request_exceptions  # Return list of exceptions
-
-
-# Get all current RequestExceptions statuses for the institution
-def get_statuses(instcode):
-    reqstatuses = db.session.execute(
-        db.select(
-            RequestException.borreqstat
-        ).filter(
-            RequestException.instcode == instcode
-        ).group_by(
-            RequestException.borreqstat
-        ).order_by(
-            RequestException.borreqstat
-        )
-    ).mappings().all()
-    return reqstatuses
-
-
-def get_user_days(user):
-    user_days = db.session.execute(db.select(UserDay).filter(UserDay.user == user.id)).scalars().all()
-    return user_days
-
-
-def get_user_statuses(user):
-    user_statuses = db.session.execute(db.select(StatusUser).filter(StatusUser.user == user.id)).scalars().all()
-    return user_statuses
-
-
-# Get the user from the database
-def get_user(username):
-    user = db.session.execute(db.select(User).filter(User.username == username)).scalar_one_or_none()
-    return user
+    return statuses
