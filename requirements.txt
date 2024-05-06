@@ -53,7 +53,7 @@ tzdata==2023.4
 tzlocal==5.2
 urllib3==2.2.0
 validators==0.22.0
-Werkzeug==3.0.1
+Werkzeug==3.0.3
 WTForms==3.1.2
 WTForms-Alchemy==0.18.0
 WTForms-Components==0.10.5
