@@ -1,0 +1,38 @@
+services:
+  requestexceptionstransit:
+    build: .
+    container_name: requestexceptionstransit
+    volumes:
+      - .:/app
+    working_dir: /app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.almanotesimport.rule=Host(`exceptions.wrlc.localhost`)"
+      - "traefik.http.routers.almanotesimport.tls=true"
+      - "traefik.http.routers.almanotesimport.entrypoints=websecure"
+    depends_on:
+      - requestexceptionstransit_db
+    networks:
+      - proxy
+
+  requestexceptionstransit_db :
+    image: mariadb:latest
+    container_name: requestexceptionstransit_db
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3322:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - proxy
+
+volumes:
+    mysql-data:
+
+networks:
+  proxy:
+    external: true

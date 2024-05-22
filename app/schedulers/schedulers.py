@@ -260,6 +260,8 @@ def update_reports():
 def set_value(row, mapped, column):
     try:
         value = row.find(mapped[column]).get_text()  # get the column value
+        if column == 'Title':  # if the column is Title
+            value = value[:510]
     except AttributeError:
         value = None
     return value
