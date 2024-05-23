@@ -2,6 +2,7 @@ from app.extensions import db
 from app.models.institution import Institution
 from datetime import datetime
 from flask import current_app
+import sys
 
 
 # User class
@@ -40,11 +41,14 @@ class User(db.Model):
 
         # If the user is in the database...
         if user is not None:
+            admincheck = User.admincheck_user(session)  # ...check if the user is an admin
+            allreportscheck = User.allreportscheck_user(session)  # ...check if the user is an admin
             User.set_email(user, session)  # ...set the user's email address
-            User.set_user_admin(user, session)  # ...set the user's admin status
-            User.set_user_allreports(user, session)  # ...set the user's allreports status
-            if 'exceptions' in session['authorizations']:
-                User.set_last_login(user)  # ...set the last login time for the user
+            if admincheck:  # ...set the user's admin status
+                session['authorizations'].append('admin')
+            if allreportscheck:
+                session['authorizations'].append('allreports')
+            User.set_last_login(user)  # ...set the last login time for the user
 
         # If the user isn't in the database...
         else:
