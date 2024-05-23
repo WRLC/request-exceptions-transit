@@ -1,12 +1,11 @@
+from pymemcache.client.base import Client as memcacheClient
 from flask import current_app, render_template, redirect, url_for, session, flash, request, abort, Response
 from app.extensions import db
 from app.utils import utils
 from app.models.institution import Institution
 from app.models.user import User
-from app.forms.loginform import LoginForm
 from app.forms.institutionform import InstitutionForm
 from app.forms.usersettingsform import UserSettingsForm
-import jwt
 import pandas as pd
 import io
 from functools import wraps
@@ -60,38 +59,33 @@ def hello_world():  # put application's code here
 
 
 # Login page
-@bp.route('/login', methods=['GET', 'POST'])
+@bp.route('/login/')
 def login():
-    form = LoginForm()  # load the login form
-    if form.validate_on_submit():
-        institution = form.data['institution']  # get the institution from the form
-        login_url = form.construct_login_url(institution)
-        return redirect(login_url)
-    if 'username' in session:  # if the user is already logged in
-        return redirect(url_for('report.hello_world'))  # redirect to the home page
-    else:
-        return render_template('login.html', form=form)  # otherwise, render the login page
+    saml_sp = current_app.config['SAML_SP']  # Get SAML SP URL
+    cookie_file = current_app.config['COOKIE_ISSUING_FILE']  # Get cookie issuing file
+    slug = current_app.config['SERVICE_SLUG']  # Get service slug
+    return redirect(saml_sp + cookie_file + '?service=' + slug)  # Redirect to SAML SP
 
 
 # Login handler
-@bp.route('/login/n', methods=['GET'])
+@bp.route('/login/n/', methods=['GET'])
 def new_login():
     session.clear()  # clear the session
-    if 'wrt' in request.cookies:  # if the login cookie is present
-        encoded_token = request.cookies['wrt']  # get the login cookie
-        user_data = jwt.decode(encoded_token, current_app.config['SHARED_SECRET'], algorithms=['HS256'])  # decode token
-        LoginForm.user_login(session, user_data)  # log the user in
-
-        if 'exceptions' in session['authorizations']:  # if the user is an exceptions user
-            return redirect(url_for('report.hello_world'))  # redirect to the home page
-        else:
-            abort(403)  # otherwise, abort with a 403 error
+    if current_app.config['COOKIE_NAME'] in request.cookies:  # if the login cookie is present
+        memcached_key = request.cookies[current_app.config['COOKIE_NAME']]  # get the login cookie
+        memcached = memcacheClient((current_app.config['MEMCACHED_SERVER'], 11211))
+        user_data = {}
+        for line in memcached.get(memcached_key).decode('utf-8').splitlines():
+            key, value = line.split('=')
+            user_data[key] = value
+        User.user_login(session, user_data)  # Log the user in
+        return redirect(url_for('report.hello_world'))
     else:
         return "no login cookie"  # if the login cookie is not present, return an error
 
 
 # Logout handler
-@bp.route('/logout')
+@bp.route('/logout/')
 @auth_required
 def logout():
     session.clear()  # clear the session
@@ -99,7 +93,7 @@ def logout():
 
 
 # View institution
-@bp.route('/<code>')
+@bp.route('/<code>/')
 @auth_required
 def view_institution(code):
     if (
@@ -120,7 +114,7 @@ def view_institution(code):
 
 
 # Report download
-@bp.route('/<code>/download')
+@bp.route('/<code>/download/')
 @auth_required
 def report_download(code):
     if (
@@ -149,7 +143,7 @@ def report_download(code):
 
 
 # Edit institution
-@bp.route('/<code>/edit', methods=['GET', 'POST'])
+@bp.route('/<code>/edit/', methods=['GET', 'POST'])
 @auth_required
 def edit_institution(code):
     if 'admin' not in session['authorizations']:
@@ -168,7 +162,7 @@ def edit_institution(code):
 
 
 # Add institution
-@bp.route('/add', methods=['GET', 'POST'])
+@bp.route('/add/', methods=['GET', 'POST'])
 @auth_required
 def add_institution():
     if 'admin' not in session['authorizations']:
@@ -185,7 +179,7 @@ def add_institution():
 
 
 # View users
-@bp.route('/users')
+@bp.route('/users/')
 @auth_required
 def view_users():
     if 'admin' not in session['authorizations']:
@@ -195,7 +189,7 @@ def view_users():
 
 
 # Edit uer settings
-@bp.route('/settings', methods=['GET', 'POST'])
+@bp.route('/settings/', methods=['GET', 'POST'])
 @auth_required
 def edit_settings():
     # get the user from the database

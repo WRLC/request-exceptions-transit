@@ -7,9 +7,9 @@ services:
     working_dir: /app
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.almanotesimport.rule=Host(`exceptions.wrlc.localhost`)"
-      - "traefik.http.routers.almanotesimport.tls=true"
-      - "traefik.http.routers.almanotesimport.entrypoints=websecure"
+      - "traefik.http.routers.requestexceptionstransit.rule=Host(`exceptions.wrlc.localhost`)"
+      - "traefik.http.routers.requestexceptionstransit.tls=true"
+      - "traefik.http.routers.requestexceptionstransit.entrypoints=websecure"
     depends_on:
       - requestexceptionstransit_db
     networks:
