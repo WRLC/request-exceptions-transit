@@ -12,7 +12,7 @@ import requests
 
 
 # Background task to update the reports
-@scheduler.task('cron', id='update_reports', minute=43, max_instances=1)  # run at 50 minutes past the hour
+@scheduler.task('cron', id='update_reports', minute=50, max_instances=1)  # run at 50 minutes past the hour
 def scheduler_update_reports():
     with scheduler.app.app_context():  # need to be in app context to access the database
         update_reports()  # update the reports
