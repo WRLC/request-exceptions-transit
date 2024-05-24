@@ -3,7 +3,7 @@ from flask import current_app, render_template, redirect, url_for, session, flas
 from app.extensions import db
 from app.utils import utils
 from app.models.institution import Institution
-from app.models.user import User
+from app.models.user import User, user_login
 from app.forms.institutionform import InstitutionForm
 from app.forms.usersettingsform import UserSettingsForm
 import pandas as pd
@@ -78,7 +78,7 @@ def new_login():
         for line in memcached.get(memcached_key).decode('utf-8').splitlines():
             key, value = line.split('=')
             user_data[key] = value
-        User.user_login(session, user_data)  # Log the user in
+        user_login(session, user_data)  # Log the user in
         return redirect(url_for('report.hello_world'))
     else:
         return "no login cookie"  # if the login cookie is not present, return an error
