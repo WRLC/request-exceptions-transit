@@ -70,9 +70,10 @@ def login():
 # Login handler
 @bp.route('/login/n/', methods=['GET'])
 def new_login():
+    cookie_name = current_app.config['COOKIE_PREFIX'] + current_app.config['SERVICE_SLUG']
     session.clear()  # clear the session
-    if current_app.config['COOKIE_NAME'] in request.cookies:  # if the login cookie is present
-        memcached_key = request.cookies[current_app.config['COOKIE_NAME']]  # get the login cookie
+    if cookie_name in request.cookies:  # if the login cookie is present
+        memcached_key = request.cookies[cookie_name]  # get the login cookie
         memcached = memcacheClient((current_app.config['MEMCACHED_SERVER'], 11211))
         user_data = {}
         for line in memcached.get(memcached_key).decode('utf-8').splitlines():
