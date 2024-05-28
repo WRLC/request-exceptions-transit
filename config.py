@@ -6,9 +6,9 @@ load_dotenv()
 
 class Config:
     # base configuration
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE")  # set the database URI
     SECRET_KEY = os.getenv("SECRET_APP_KEY")
     SHARED_SECRET = os.getenv("SHARED_SECRET")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE")  # set the database URI
     ADMINS = os.getenv("ADMINS")
     ALLREPORTS = os.getenv("ALLREPORTS")
     LOG_FILE = os.getenv("LOG_FILE")
@@ -18,7 +18,7 @@ class Config:
     SITE_URL = os.getenv("SITE_URL")
     SAML_SP = os.getenv("SAML_SP")
     COOKIE_ISSUING_FILE = os.getenv("COOKIE_ISSUING_FILE")
-    COOKIE_NAME = os.getenv("COOKIE_NAME")
+    COOKIE_PREFIX = os.getenv("COOKIE_PREFIX")
     MEMCACHED_SERVER = os.getenv("MEMCACHED_SERVER")
     SERVICE_SLUG = os.getenv("SERVICE_SLUG")
     SCHEDULER_API_ENABLED = True
