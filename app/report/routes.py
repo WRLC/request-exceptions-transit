@@ -90,7 +90,12 @@ def new_login():
 @auth_required
 def logout():
     session.clear()  # clear the session
-    return redirect(url_for('report.hello_world'))  # redirect to the home page
+    return redirect(
+        current_app.config['SAML_SP'] +
+        current_app.config['LOGOUT_SCRIPT'] +
+        '?service=' +
+        current_app.config['SERVICE_SLUG']
+    )  # redirect to the logout script
 
 
 # View institution
