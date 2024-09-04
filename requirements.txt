@@ -45,7 +45,7 @@ pytz==2024.1
 pyxlsb==1.0.10
 requests==2.32.3
 six==1.16.0
-soupsieve==2.5
+soupsieve==2.6
 SQLAlchemy==2.0.30
 SQLAlchemy-Utils==0.41.1
 texttable==1.7.0
