@@ -53,7 +53,7 @@ typing_extensions==4.12.2
 tzdata==2024.1
 tzlocal==5.2
 urllib3==2.2.2
-validators==0.22.0
+validators==0.34.0
 Werkzeug==3.0.3
 WTForms==3.1.2
 WTForms-Alchemy==0.18.0
