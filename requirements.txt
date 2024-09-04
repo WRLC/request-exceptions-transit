@@ -31,7 +31,7 @@ numpy==2.1.1
 odfpy==1.4.1
 openpyxl==3.1.2
 packaging==24.0
-pandas==2.2.0
+pandas==2.2.2
 pycparser==2.21
 pyexcel==0.7.0
 pyexcel-io==0.6.6
