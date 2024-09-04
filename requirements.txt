@@ -30,7 +30,7 @@ MarkupSafe==2.1.5
 numpy==2.1.1
 odfpy==1.4.1
 openpyxl==3.1.5
-packaging==24.0
+packaging==24.1
 pandas==2.2.2
 pycparser==2.21
 pyexcel==0.7.0
