@@ -34,7 +34,7 @@ def user_login(session: SessionMixin, user_data: dict) -> None:
     session['username']: str = user_data['UserName']  # Set the username
     session['display_name']: str = user_data['DisplayName']  # Set the user's display name
     session['email']: str = user_data['Email']  # Set the user's email
-    session['user_home']: str = user_data['University']  # Set the user's home institution
+    session['user_home']: str = Institution.get_inst_code(user_data['University'])  # Set the user's home institution
     session['authorizations']: list = []  # Initialize the user's authorizations
 
     user: User = check_user(session['username'])  # Check if the user exists in the database
@@ -58,7 +58,7 @@ def user_login(session: SessionMixin, user_data: dict) -> None:
     else:
         admincheck: bool = admincheck_user(session)  # ...check if the user is an admin
         allreportscheck: bool = allreportscheck_user(session)  # ...check if the user is an admin
-        add_user(session, admincheck, allreportscheck)  # ...add the user to the database
+        add_user(session, admincheck, allreportscheck, user_data)  # ...add the user to the database
         set_admin(session, admincheck)  # ...set the user's admin status
         set_allreports(session, allreportscheck)  # ...set the user's allreports status
 
@@ -82,11 +82,11 @@ def set_last_login(user: User) -> None:
 
 
 # Add the user to the database
-def add_user(session: SessionMixin, admincheck: bool, allreportscheck: bool) -> None:
+def add_user(session: SessionMixin, admincheck: bool, allreportscheck: bool, user_data: dict) -> None:
     user: User = User(  # Create the user object
         username=session['username'],
         displayname=session['display_name'],
-        instcode=session['user_home'],
+        instcode=user_data['University'],
         emailaddress=session['email'],
         admin=admincheck,
         allreports=allreportscheck,
