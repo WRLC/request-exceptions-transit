@@ -34,7 +34,7 @@ def user_login(session: SessionMixin, user_data: dict) -> None:
     session['username']: str = user_data['UserName']  # Set the username
     session['display_name']: str = user_data['DisplayName']  # Set the user's display name
     session['email']: str = user_data['Email']  # Set the user's email
-    session['user_home']: str = Institution.get_inst_code(user_data['University'])
+    session['user_home']: str = user_data['University']  # Set the user's home institution
     session['authorizations']: list = []  # Initialize the user's authorizations
 
     user: User = check_user(session['username'])  # Check if the user exists in the database
