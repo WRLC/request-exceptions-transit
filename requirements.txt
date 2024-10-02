@@ -41,7 +41,7 @@ PyMySQL==1.1.1
 pyOpenSSL==24.2.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
-pytz==2024.1
+pytz==2024.2
 pyxlsb==1.0.10
 requests==2.32.3
 six==1.16.0
