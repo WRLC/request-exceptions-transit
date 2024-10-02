@@ -269,7 +269,7 @@ def set_value(row, mapped, column):
 
 # Delete all rows from a table for a given institution
 def delete_rows(obtype, instcode):
-    objs = obtype.query.filter_by(instcode=instcode).all()
+    objs = db.session.query(obtype).filter_by(instcode=instcode).all()  # Get all rows for the institution
     for obj in objs:
         try:
             db.session.delete(obj)
@@ -290,7 +290,7 @@ def api_call(reptype, institution):
     try:
         response = requests.request('GET', path).content  # Make the API call
     except requests.exceptions.RequestException as e:
-        current_app.logger.log('ERROR', 'API call failed for ' + institution.code + ' ' + reptype + ' ' + str(e))
+        current_app.logger.error('API call failed for ' + institution.code + ' ' + reptype + ' ' + str(e))
         return None
     soup = soupify(response)  # Turn the API response into a BeautifulSoup object
     return soup
