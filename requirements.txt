@@ -55,7 +55,7 @@ tzlocal==5.2
 urllib3==2.2.3
 validators==0.34.0
 Werkzeug==3.1.2
-WTForms==3.1.2
+WTForms==3.2.1
 WTForms-Alchemy==0.18.0
 WTForms-Components==0.10.5
 xlrd==2.0.1
