@@ -1,3 +1,6 @@
+"""
+This module contains the routes for the report blueprint.
+"""
 from pymemcache.client.base import Client as memcacheClient
 from flask import current_app, render_template, redirect, url_for, session, flash, request, abort, Response
 from app.extensions import db
@@ -13,29 +16,34 @@ from app.report import bp
 
 
 # set up error handlers & templates for HTTP codes used in abort()
-#   see http://flask.pocoo.org/docs/1.0/patterns/errorpages/
-# 400 error handler
 @bp.errorhandler(400)
 def badrequest(e):
+    """
+    400 error handler
+
+    :param e: error
+    :return: error template
+    """
     return render_template('error_400.html', e=e), 400  # render the error template
 
 
-# 403 error handler
 @bp.errorhandler(403)
 def forbidden(e):
+    """ 403 error handler """
     return render_template('unauthorized.html', e=e), 403  # render the error template
 
 
-# 500 error handler
 @bp.errorhandler(500)
 def internalerror(e):
+    """ 500 error handler """
     return render_template('error_500.html', e=e), 500  # render the error template
 
 
-# decorator for pages that need auth
 def auth_required(f):
+    """ Decorator to require authentication """
     @wraps(f)  # preserve the original function's metadata
-    def decorated(*args, **kwargs):  # the wrapper function
+    def decorated(*args, **kwargs):
+        """ Wrapper function """
         if 'username' not in session:  # if the user is not logged in
             return redirect(url_for('report.login'))  # redirect to the login page
         else:
@@ -44,10 +52,10 @@ def auth_required(f):
     return decorated
 
 
-# Home page
 @bp.route('/')
 @auth_required
 def hello_world():  # put application's code here
+    """ Home page """
     # Check if user is an admin or has allreports authorization
     if 'admin' not in session['authorizations'] and 'allreports' not in session['authorizations']:
         return redirect(url_for('report.view_institution', code=session['user_home']))  # Redirect to institution page
@@ -58,18 +66,18 @@ def hello_world():  # put application's code here
     return render_template('index.html', institutions=institutions, updates=updates)  # Render home page
 
 
-# Login page
 @bp.route('/login/')
 def login():
+    """ Login page """
     saml_sp = current_app.config['SAML_SP']  # Get SAML SP URL
     cookie_file = current_app.config['COOKIE_ISSUING_FILE']  # Get cookie issuing file
     slug = current_app.config['SERVICE_SLUG']  # Get service slug
     return redirect(saml_sp + cookie_file + '?service=' + slug)  # Redirect to SAML SP
 
 
-# Login handler
 @bp.route('/login/n/', methods=['GET'])
 def new_login():
+    """ New login handler """
     cookie_name = current_app.config['COOKIE_PREFIX'] + current_app.config['SERVICE_SLUG']
     session.clear()  # clear the session
     if cookie_name in request.cookies:  # if the login cookie is present
@@ -85,10 +93,10 @@ def new_login():
         return "no login cookie"  # if the login cookie is not present, return an error
 
 
-# Logout handler
 @bp.route('/logout/')
 @auth_required
 def logout():
+    """ Logout handler """
     session.clear()  # clear the session
     return redirect(
         current_app.config['SAML_SP'] +
@@ -98,10 +106,10 @@ def logout():
     )  # redirect to the logout script
 
 
-# View institution
 @bp.route('/<code>/')
 @auth_required
 def view_institution(code):
+    """ Institution page """
     if (
         session['user_home'] != code and  # Check if user is at their home institution
         'admin' not in session['authorizations'] and  # Check if user is an admin
@@ -119,10 +127,10 @@ def view_institution(code):
     return render_template('institution.html', institution=institution, updated=updated, exceptions=request_exceptions)
 
 
-# Report download
 @bp.route('/<code>/download/')
 @auth_required
 def report_download(code):
+    """ Download report """
     if (
         session['user_home'] != code and  # Check if user is at their home institution
         'admin' not in session['authorizations'] and  # Check if user is an admin
@@ -148,10 +156,10 @@ def report_download(code):
     return Response(buffer.getvalue(), mimetype='application/vnd.ms-excel', headers=headers)
 
 
-# Edit institution
 @bp.route('/<code>/edit/', methods=['GET', 'POST'])
 @auth_required
 def edit_institution(code):
+    """ Edit institution page """
     if 'admin' not in session['authorizations']:
         abort(403)  # if the user is not an admin, abort with a 403 error
 
@@ -167,10 +175,10 @@ def edit_institution(code):
     return render_template('edit_institution.html', form=form)  # Render edit institution page
 
 
-# Add institution
 @bp.route('/add/', methods=['GET', 'POST'])
 @auth_required
 def add_institution():
+    """ Add institution page """
     if 'admin' not in session['authorizations']:
         abort(403)  # if the user is not an admin, abort with a 403 error
 
@@ -184,20 +192,21 @@ def add_institution():
     return render_template('add_institution.html', form=form)  # Render add institution page
 
 
-# View users
+# noinspection PyUnresolvedReferences
 @bp.route('/users/')
 @auth_required
 def view_users():
+    """ Users page """
     if 'admin' not in session['authorizations']:
         abort(403)  # if the user is not an admin, abort with a 403 error
     users = db.session.execute(db.select(User).order_by(User.last_login.desc())).scalars()  # get all users
     return render_template('users.html', users=users)  # render the users admin page
 
 
-# Edit uer settings
 @bp.route('/settings/', methods=['GET', 'POST'])
 @auth_required
 def edit_settings():
+    """ Edit user settings """
     # get the user from the database
     user = utils.get_user(session['username'])  # get the user from the database
     days = utils.get_user_days(user)  # get the user's days
