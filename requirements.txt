@@ -6,7 +6,7 @@ cffi==1.17.1
 chardet==5.2.0
 charset-normalizer==3.4.0
 click==8.1.7
-cryptography==43.0.3
+cryptography==44.0.0
 decorator==5.1.1
 defusedxml==0.7.1
 dnspython==2.7.0
@@ -38,7 +38,7 @@ pyexcel-io==0.6.6
 pyexcel-webio==0.1.4
 pymemcache==4.0.0
 PyMySQL==1.1.1
-pyOpenSSL==24.2.1
+pyOpenSSL==24.3.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.2
