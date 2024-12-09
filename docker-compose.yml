@@ -10,6 +10,26 @@ services:
       - "traefik.http.routers.requestexceptionstransit.rule=Host(`exceptions.wrlc.localhost`)"
       - "traefik.http.routers.requestexceptionstransit.tls=true"
       - "traefik.http.routers.requestexceptionstransit.entrypoints=websecure"
+    environment:
+      DATABASE: "mysql+pymysql://user:password@requestexceptionstransit_db:3306/mydb"
+      SECRET_APP_KEY: ${SECRET_APP_KEY}
+      SHARED_SECRET: ${SHARED_SECRET}
+      ADMINS: ${ADMINS}
+      ALLREPORTS: ${ALLREPORTS}
+      LOG_FILE: "./log/audit.log"
+      LOG_DIR: "./log"
+      SMTP_ADDRESS: "localhost:8025"
+      SENDER_EMAIL: "exceptions@wrlc.org"
+      SITE_URL: "https://exceptions.wrlc.localhost"
+      SAML_SP: "https://simplesamlphp.wrlc.localhost"
+      COOKIE_ISSUING_FILE: "/login"
+      LOGOUT_SCRIPT: "/logout"
+      COOKIE_PREFIX: "_wr_"
+      MEMCACHED_SERVER: "aladinsp-memcached"
+      SERVICE_SLUG: "exceptions"
+    secrets:
+      - ssh_key
+      - gitconfig
     depends_on:
       - requestexceptionstransit_db
     networks:
@@ -30,6 +50,11 @@ services:
     networks:
       - proxy
 
+secrets:
+  ssh_key:
+    file: ${SSH_KEY_FILE}
+  gitconfig:
+    file: ${GITCONFIG}
 volumes:
     mysql-data:
 
