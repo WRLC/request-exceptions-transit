@@ -8,10 +8,26 @@ After = network.target
 [Service]
 User = www-data
 Group = www-data
-WorkingDirectory = /opt/local/enhancedExceptions
-Environment="PATH=/opt/local/enhancedExceptions/venv/bin"
-ExecStart = /opt/local/enhancedExceptions/venv/bin/gunicorn -b 127.0.0.1:5001 -m 007 wsgi:app \
-    --error-logfile /opt/local/enhancedExceptions/log/gunicorn.log --log-level 'warning'
+WorkingDirectory = /path/to/request-exceptions-transit
+Environment="PATH=/path/to/venv/bin"
+Environment="DATABASE="
+Environment="SECRET_APP_KEY="
+Environment="SHARED_SECRET="
+Environment="ADMINS="
+Environment="ALLREPORTS="
+Environment="LOG_FILE=./log/audit.log"
+Environment="LOG_DIR=./log"
+Environment="SMTP_ADDRESS="
+Environment="SENDER_EMAIL="
+Environment="SITE_URL="
+Environment="SAML_SP="
+Environment="COOKIE_ISSUING_FILE=/login"
+Environment="LOGOUT_SCRIPT=/logout"
+Environment="COOKIE_PREFIX=_wr_"
+Environment="MEMCACHED_SERVER="
+Environment="SERVICE_SLUG=exceptions"
+ExecStart = /path/to/venv/bin/gunicorn -b 127.0.0.1:5001 -m 007 wsgi:app \
+    --error-logfile log/gunicorn.log --log-level 'warning'
 
 [Install]
 WantedBy = multi-user.target
